@@ -1,0 +1,158 @@
+// Prisma Schema для магазина цифровых товаров
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==================== ПОЛЬЗОВАТЕЛИ ====================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String?
+  role          String    @default("CUSTOMER") // ADMIN, CUSTOMER
+  orders        Order[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ==================== КАТЕГОРИИ ====================
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?
+  products    Product[]
+  seo         SeoMeta?
+  parentId    String?
+  parent      Category? @relation("CategoryTree", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryTree")
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ==================== ТОВАРЫ ====================
+
+model Product {
+  id            String      @id @default(cuid())
+  name          String
+  slug          String      @unique
+  shortDesc     String?     // Краткое описание
+  description   String      // Полное описание
+  price         Float
+  oldPrice      Float?      // Старая цена для скидок
+  images        String      // JSON массив изображений
+  downloadFile  String      // Путь к файлу для скачивания
+  demoUrl       String?     // Ссылка на демо
+  version       String?     // Версия продукта
+  categoryId    String
+  category      Category    @relation(fields: [categoryId], references: [id])
+  seo           SeoMeta?
+  orderItems    OrderItem[]
+  productType   String      @default("WEB_APP") // WEB_APP, MOBILE_APP
+  features      String?     // JSON массив характеристик
+  isActive      Boolean     @default(true)
+  isFeatured    Boolean     @default(false) // Рекомендуемый товар
+  downloads     Int         @default(0) // Счётчик скачиваний
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// ==================== SEO ====================
+
+model SeoMeta {
+  id            String    @id @default(cuid())
+  title         String    // Мета-заголовок
+  description   String    // Мета-описание
+  keywords      String    // Ключевые слова через запятую
+  canonicalUrl  String?   // Канонический URL
+  ogImage       String?   // Open Graph изображение
+  productId     String?   @unique
+  product       Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  categoryId    String?   @unique
+  category      Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ==================== ЗАКАЗЫ ====================
+
+model Order {
+  id            String      @id @default(cuid())
+  orderNumber   String      @unique // Номер заказа для отображения
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  items         OrderItem[]
+  total         Float
+  status        String      @default("PENDING") // PENDING, PAID, CANCELLED, REFUNDED
+  paymentId     String?     // YooKassa payment ID
+  paymentMethod String?     // Метод оплаты
+  customerEmail String      // Email для уведомлений
+  customerName  String?
+  notes         String?     // Примечания к заказу
+  paidAt        DateTime?   // Дата оплаты
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model OrderItem {
+  id          String    @id @default(cuid())
+  orderId     String
+  order       Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id])
+  productName String    // Сохраняем название на момент покупки
+  price       Float     // Сохраняем цену на момент покупки
+  downloadKey String    @unique @default(cuid()) // Уникальный ключ для скачивания
+  downloadCount Int     @default(0) // Количество скачиваний
+  createdAt   DateTime  @default(now())
+}
+
+// ==================== НАСТРОЙКИ САЙТА ====================
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==================== СТРАНИЦЫ (для SEO) ====================
+
+model Page {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  content     String?
+  seoTitle    String?
+  seoDesc     String?
+  seoKeywords String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ==================== ОТЗЫВЫ ====================
+
+model Review {
+  id        String   @id @default(cuid())
+  name      String   // Имя клиента
+  company   String?  // Компания (опционально)
+  text      String   // Текст отзыва
+  rating    Int      @default(5) // Рейтинг 1-5
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
