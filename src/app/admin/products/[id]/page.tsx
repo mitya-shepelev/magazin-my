@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation"
+import Link from "next/link"
 import { db } from "@/lib/db"
 import { ProductForm } from "@/components/admin/ProductForm"
+import { Button } from "@/components/ui/button"
+import { Settings2 } from "lucide-react"
 
 async function getProduct(id: string) {
   return db.product.findUnique({
@@ -34,9 +37,17 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Редактирование товара</h1>
-        <p className="text-muted-foreground">{product.name}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Редактирование товара</h1>
+          <p className="text-muted-foreground">{product.name}</p>
+        </div>
+        <Link href={`/admin/products/${id}/stages`}>
+          <Button variant="outline">
+            <Settings2 className="h-4 w-4 mr-2" />
+            Этапы установки
+          </Button>
+        </Link>
       </div>
 
       <ProductForm product={product} categories={categories} />
