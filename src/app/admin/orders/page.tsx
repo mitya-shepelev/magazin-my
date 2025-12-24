@@ -1,16 +1,6 @@
 import { Metadata } from "next"
-import Link from "next/link"
 import { db } from "@/lib/db"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import {
   Card,
   CardContent,
@@ -20,15 +10,14 @@ import {
 } from "@/components/ui/card"
 import {
   ShoppingCart,
-  Eye,
   Download,
   Clock,
   CheckCircle,
   XCircle,
-  RefreshCw,
   TrendingUp,
   Package,
 } from "lucide-react"
+import { OrdersTableClient } from "@/components/admin/OrdersTableClient"
 
 export const metadata: Metadata = {
   title: "Заказы | Админ-панель",
@@ -74,28 +63,6 @@ async function getOrderStats() {
   }
 }
 
-const statusConfig = {
-  PENDING: {
-    label: "Ожидает",
-    icon: Clock,
-    className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-  },
-  PAID: {
-    label: "Оплачен",
-    icon: CheckCircle,
-    className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  },
-  CANCELLED: {
-    label: "Отменён",
-    icon: XCircle,
-    className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  },
-  REFUNDED: {
-    label: "Возврат",
-    icon: RefreshCw,
-    className: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400",
-  },
-}
 
 export default async function OrdersPage() {
   const [orders, stats] = await Promise.all([
@@ -204,78 +171,7 @@ export default async function OrdersPage() {
         </CardHeader>
         <CardContent>
           {orders.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Номер</TableHead>
-                  <TableHead>Клиент</TableHead>
-                  <TableHead>Товары</TableHead>
-                  <TableHead>Сумма</TableHead>
-                  <TableHead>Статус</TableHead>
-                  <TableHead>Дата</TableHead>
-                  <TableHead className="text-right">Действия</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders.map((order) => {
-                  const status = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.PENDING
-                  const StatusIcon = status.icon
-
-                  return (
-                    <TableRow key={order.id} className="hover:bg-secondary/50">
-                      <TableCell className="font-mono font-medium">
-                        #{order.orderNumber}
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{order.user?.name || "—"}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {order.customerEmail}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          {order.items.slice(0, 2).map((item) => (
-                            <p key={item.id} className="text-sm">
-                              {item.productName}
-                            </p>
-                          ))}
-                          {order.items.length > 2 && (
-                            <p className="text-xs text-muted-foreground">
-                              +{order.items.length - 2} ещё
-                            </p>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-semibold">
-                        {order.total.toLocaleString("ru-RU")} ₽
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={status.className}>
-                          <StatusIcon className="h-3 w-3 mr-1" />
-                          {status.label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {new Date(order.createdAt).toLocaleDateString("ru-RU", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link href={`/admin/orders/${order.id}`}>
-                            <Eye className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
+            <OrdersTableClient orders={orders} />
           ) : (
             <div className="text-center py-12">
               <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
