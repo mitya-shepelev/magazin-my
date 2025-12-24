@@ -90,13 +90,26 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      // Increment download count for products
+      // Increment download count for products and create installation stages
       const order = await db.order.findUnique({
         where: { id: orderId },
-        include: { items: true },
+        include: {
+          items: {
+            include: {
+              product: {
+                include: {
+                  stageTemplates: {
+                    orderBy: { sortOrder: "asc" },
+                  },
+                },
+              },
+            },
+          },
+        },
       })
 
       if (order) {
+        // Increment download counters
         for (const item of order.items) {
           await db.product.update({
             where: { id: item.productId },
@@ -105,6 +118,9 @@ export async function POST(request: NextRequest) {
             },
           })
         }
+
+        // Create installation stages from templates
+        await createInstallationStages(orderId, order.items)
       }
 
       console.log(`Order ${orderId} marked as paid`)
@@ -133,5 +149,58 @@ export async function POST(request: NextRequest) {
       { error: "Webhook processing failed" },
       { status: 500 }
     )
+  }
+}
+
+// Создание этапов установки из шаблонов товаров
+async function createInstallationStages(orderId: string, items: any[]) {
+  try {
+    // Собираем все шаблоны из всех товаров заказа
+    const allTemplates: Array<{
+      title: string
+      description: string
+      type: string
+      sortOrder: number
+      productName: string
+    }> = []
+
+    for (const item of items) {
+      const templates = item.product.stageTemplates || []
+      for (const template of templates) {
+        allTemplates.push({
+          title: template.title,
+          description: template.description,
+          type: template.type,
+          sortOrder: allTemplates.length + 1,
+          productName: item.product.name,
+        })
+      }
+    }
+
+    // Если есть несколько товаров, добавляем имя товара к этапам
+    const hasMultipleProducts = items.length > 1
+
+    // Создаём этапы установки
+    for (const template of allTemplates) {
+      const title = hasMultipleProducts
+        ? `${template.title} (${template.productName})`
+        : template.title
+
+      await db.installationStage.create({
+        data: {
+          orderId,
+          title,
+          description: template.description,
+          type: template.type,
+          sortOrder: template.sortOrder,
+          status: "PENDING",
+        },
+      })
+    }
+
+    console.log(`Created ${allTemplates.length} installation stages for order ${orderId}`)
+  } catch (error) {
+    console.error("Error creating installation stages:", error)
+    // Не прерываем процесс оплаты из-за ошибки создания этапов
   }
 }

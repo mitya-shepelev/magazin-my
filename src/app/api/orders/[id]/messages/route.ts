@@ -1,0 +1,139 @@
+import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@/lib/auth"
+import { db } from "@/lib/db"
+import { z } from "zod"
+
+const createMessageSchema = z.object({
+  content: z.string().min(1, "Сообщение не может быть пустым"),
+  files: z.string().optional(), // JSON array файлов
+})
+
+// GET /api/orders/[id]/messages - получить сообщения заказа
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { id } = await params
+    const isAdmin = session.user.role === "ADMIN"
+
+    // Проверяем доступ к заказу
+    const order = await db.order.findUnique({
+      where: { id },
+      select: { id: true, userId: true },
+    })
+
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 })
+    }
+
+    if (!isAdmin && order.userId !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    const messages = await db.orderMessage.findMany({
+      where: { orderId: id },
+      orderBy: { createdAt: "asc" },
+      include: {
+        user: { select: { id: true, name: true, role: true } },
+      },
+    })
+
+    return NextResponse.json(messages)
+  } catch (error) {
+    console.error("Error fetching messages:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
+
+// POST /api/orders/[id]/messages - отправить сообщение
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { id } = await params
+    const body = await request.json()
+    const isAdmin = session.user.role === "ADMIN"
+
+    const validation = createMessageSchema.safeParse(body)
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: validation.error.flatten() },
+        { status: 400 }
+      )
+    }
+
+    // Проверяем доступ к заказу
+    const order = await db.order.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        userId: true,
+        status: true,
+        installationStatus: true,
+        supportEndsAt: true,
+      },
+    })
+
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 })
+    }
+
+    if (!isAdmin && order.userId !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    // Проверяем можно ли писать (заказ оплачен и поддержка активна)
+    if (!isAdmin) {
+      if (order.status !== "PAID") {
+        return NextResponse.json(
+          { error: "Чат доступен только для оплаченных заказов" },
+          { status: 400 }
+        )
+      }
+
+      // Проверяем срок поддержки (если установка завершена)
+      if (
+        order.installationStatus === "COMPLETED" &&
+        order.supportEndsAt &&
+        new Date(order.supportEndsAt) < new Date()
+      ) {
+        return NextResponse.json(
+          { error: "Срок поддержки истёк" },
+          { status: 400 }
+        )
+      }
+    }
+
+    const message = await db.orderMessage.create({
+      data: {
+        orderId: id,
+        userId: session.user.id,
+        content: validation.data.content,
+        files: validation.data.files || null,
+      },
+      include: {
+        user: { select: { id: true, name: true, role: true } },
+      },
+    })
+
+    // TODO: Отправить email-уведомление
+    // await sendMessageNotification(order, message, isAdmin)
+
+    return NextResponse.json(message, { status: 201 })
+  } catch (error) {
+    console.error("Error creating message:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
