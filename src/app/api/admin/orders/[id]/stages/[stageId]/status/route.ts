@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { z } from "zod"
+import { invalidate } from "@/lib/cache"
+import { CACHE_KEYS } from "@/lib/cache-keys"
 
 const updateStatusSchema = z.object({
   status: z.enum(["PENDING", "IN_PROGRESS", "COMPLETED"]),
@@ -57,6 +59,10 @@ export async function POST(
 
     // Обновляем статус установки заказа
     await updateOrderInstallationStatus(id)
+
+    // Инвалидация Redis кеша
+    await invalidate(CACHE_KEYS.ORDER_STAGES(id))
+    await invalidate(CACHE_KEYS.ORDER(id))
 
     return NextResponse.json(stage)
   } catch (error) {

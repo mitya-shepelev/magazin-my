@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { invalidate } from "@/lib/cache"
+import { CACHE_KEYS } from "@/lib/cache-keys"
 
 // POST /api/orders/[id]/stages/[stageId]/confirm - клиент подтверждает этап
 export async function POST(
@@ -74,6 +76,10 @@ export async function POST(
 
     // Обновляем статус установки заказа
     await updateOrderInstallationStatus(id)
+
+    // Инвалидация Redis кеша
+    await invalidate(CACHE_KEYS.ORDER_STAGES(id))
+    await invalidate(CACHE_KEYS.ORDER(id))
 
     // TODO: Отправить email-уведомление админу
 

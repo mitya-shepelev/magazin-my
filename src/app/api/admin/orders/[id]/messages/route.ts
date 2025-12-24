@@ -1,0 +1,94 @@
+import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@/lib/auth"
+import { db } from "@/lib/db"
+import { z } from "zod"
+import { invalidate } from "@/lib/cache"
+import { CACHE_KEYS } from "@/lib/cache-keys"
+
+const messageSchema = z.object({
+  content: z.string().min(1),
+  files: z.string().nullable().optional(),
+})
+
+// GET /api/admin/orders/[id]/messages - получить сообщения заказа
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth()
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { id } = await params
+
+    const messages = await db.orderMessage.findMany({
+      where: { orderId: id },
+      orderBy: { createdAt: "asc" },
+      include: {
+        user: {
+          select: { id: true, name: true, role: true },
+        },
+      },
+    })
+
+    return NextResponse.json(messages)
+  } catch (error) {
+    console.error("Error fetching messages:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
+
+// POST /api/admin/orders/[id]/messages - отправить сообщение
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth()
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { id } = await params
+    const body = await request.json()
+
+    const validation = messageSchema.safeParse(body)
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: validation.error.flatten() },
+        { status: 400 }
+      )
+    }
+
+    const order = await db.order.findUnique({ where: { id } })
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 })
+    }
+
+    const message = await db.orderMessage.create({
+      data: {
+        orderId: id,
+        userId: session.user.id,
+        content: validation.data.content,
+        files: validation.data.files || null,
+      },
+      include: {
+        user: {
+          select: { id: true, name: true, role: true },
+        },
+      },
+    })
+
+    // Инвалидация Redis кеша
+    await invalidate(CACHE_KEYS.ORDER_MESSAGES(id))
+
+    // TODO: Send notification to client (email via Unisender)
+
+    return NextResponse.json(message, { status: 201 })
+  } catch (error) {
+    console.error("Error sending message:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}

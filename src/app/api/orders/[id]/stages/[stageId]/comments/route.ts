@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { z } from "zod"
+import { invalidate } from "@/lib/cache"
+import { CACHE_KEYS } from "@/lib/cache-keys"
 
 const createCommentSchema = z.object({
   content: z.string().min(1, "Комментарий не может быть пустым"),
@@ -144,6 +146,9 @@ export async function POST(
         user: { select: { id: true, name: true, role: true } },
       },
     })
+
+    // Инвалидация Redis кеша
+    await invalidate(CACHE_KEYS.ORDER_STAGES(id))
 
     return NextResponse.json(comment, { status: 201 })
   } catch (error) {

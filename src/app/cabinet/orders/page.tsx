@@ -100,6 +100,17 @@ export default async function OrdersPage() {
                     {order.total.toLocaleString("ru-RU")} ₽
                   </span>
                 </div>
+
+                {order.status === "PAID" && order.installationStatus !== "NOT_STARTED" && (
+                  <div className="mt-4 pt-4 border-t">
+                    <Link href={`/cabinet/orders/${order.id}`}>
+                      <Button className="w-full gap-2">
+                        <Eye className="h-4 w-4" />
+                        Прогресс установки
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

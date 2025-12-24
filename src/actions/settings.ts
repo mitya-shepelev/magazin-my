@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache"
 import { db } from "@/lib/db"
 import { auth } from "@/lib/auth"
+import { invalidate } from "@/lib/cache"
+import { CACHE_KEYS } from "@/lib/cache-keys"
 
 const SETTING_KEYS = [
   // Store
@@ -74,6 +76,9 @@ export async function saveSettingsAction(formData: FormData) {
   }
 
   revalidatePath("/admin/settings")
+
+  // Инвалидация Redis кеша
+  await invalidate(CACHE_KEYS.SETTINGS)
 
   return { success: true }
 }

@@ -3,6 +3,8 @@
 import { db } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
+import { invalidate, invalidatePattern } from "@/lib/cache"
+import { CACHE_KEYS } from "@/lib/cache-keys"
 import slugify from "slugify"
 import { writeFile, mkdir } from "fs/promises"
 import path from "path"
@@ -134,6 +136,15 @@ export async function createProduct(formData: FormData) {
     revalidatePath("/admin/products")
     revalidatePath("/")
     revalidatePath("/catalog")
+
+    // Инвалидация Redis кеша
+    await invalidatePattern(`${CACHE_KEYS.PRODUCTS_LIST}:*`)
+    await invalidate(CACHE_KEYS.PRODUCT(slug))
+    await invalidate(CACHE_KEYS.CATEGORIES)
+    await invalidate('products:count')
+    await invalidatePattern('category:*:products:*')
+    await invalidatePattern('related:*')
+
     return { success: true, product }
   } catch (error) {
     console.error(error)
@@ -273,6 +284,14 @@ export async function updateProduct(id: string, formData: FormData) {
     revalidatePath(`/product/${slug}`)
     revalidatePath("/")
     revalidatePath("/catalog")
+
+    // Инвалидация Redis кеша
+    await invalidatePattern(`${CACHE_KEYS.PRODUCTS_LIST}:*`)
+    await invalidate(CACHE_KEYS.PRODUCT(slug))
+    await invalidate(CACHE_KEYS.CATEGORIES)
+    await invalidatePattern('category:*:products:*')
+    await invalidatePattern('related:*')
+
     return { success: true }
   } catch (error) {
     console.error(error)
@@ -297,6 +316,15 @@ export async function deleteProduct(id: string) {
     revalidatePath("/admin/products")
     revalidatePath("/")
     revalidatePath("/catalog")
+
+    // Инвалидация Redis кеша
+    await invalidatePattern(`${CACHE_KEYS.PRODUCTS_LIST}:*`)
+    await invalidatePattern('product:*')
+    await invalidate(CACHE_KEYS.CATEGORIES)
+    await invalidate('products:count')
+    await invalidatePattern('category:*:products:*')
+    await invalidatePattern('related:*')
+
     return { success: true }
   } catch (error) {
     return { error: "Ошибка при удалении товара" }

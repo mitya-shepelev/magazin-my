@@ -2,6 +2,8 @@ import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { db } from "@/lib/db"
+import { cached } from "@/lib/cache"
+import { CACHE_KEYS, CACHE_TTL } from "@/lib/cache-keys"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { AddToCartButton } from "@/components/shop/AddToCartButton"
@@ -24,25 +26,33 @@ interface ProductPageProps {
 }
 
 async function getProduct(slug: string) {
-  return db.product.findUnique({
-    where: { slug, isActive: true },
-    include: {
-      category: true,
-      seo: true,
-    },
-  })
+  return cached(
+    CACHE_KEYS.PRODUCT(slug),
+    () => db.product.findUnique({
+      where: { slug, isActive: true },
+      include: {
+        category: true,
+        seo: true,
+      },
+    }),
+    CACHE_TTL.PRODUCTS
+  )
 }
 
 async function getRelatedProducts(categoryId: string, currentId: string) {
-  return db.product.findMany({
-    where: {
-      categoryId,
-      isActive: true,
-      id: { not: currentId },
-    },
-    take: 3,
-    orderBy: { createdAt: "desc" },
-  })
+  return cached(
+    `related:${categoryId}:${currentId}`,
+    () => db.product.findMany({
+      where: {
+        categoryId,
+        isActive: true,
+        id: { not: currentId },
+      },
+      take: 3,
+      orderBy: { createdAt: "desc" },
+    }),
+    CACHE_TTL.PRODUCTS
+  )
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {

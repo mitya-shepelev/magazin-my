@@ -2,6 +2,8 @@ import { Metadata } from "next"
 import Link from "next/link"
 import { Suspense } from "react"
 import { db } from "@/lib/db"
+import { cached } from "@/lib/cache"
+import { CACHE_KEYS, CACHE_TTL } from "@/lib/cache-keys"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ShoppingCart, Globe, Smartphone, Zap, ArrowRight } from "lucide-react"
@@ -32,25 +34,33 @@ function getSortOrder(sort: SortOption) {
 }
 
 async function getProducts(sort: SortOption = "featured") {
-  return db.product.findMany({
-    where: { isActive: true },
-    include: {
-      category: true,
-    },
-    orderBy: getSortOrder(sort),
-  })
+  return cached(
+    `${CACHE_KEYS.PRODUCTS_LIST}:${sort}`,
+    () => db.product.findMany({
+      where: { isActive: true },
+      include: {
+        category: true,
+      },
+      orderBy: getSortOrder(sort),
+    }),
+    CACHE_TTL.PRODUCTS
+  )
 }
 
 async function getCategories() {
-  return db.category.findMany({
-    where: { isActive: true },
-    include: {
-      _count: {
-        select: { products: { where: { isActive: true } } }
-      }
-    },
-    orderBy: { sortOrder: "asc" }
-  })
+  return cached(
+    CACHE_KEYS.CATEGORIES,
+    () => db.category.findMany({
+      where: { isActive: true },
+      include: {
+        _count: {
+          select: { products: { where: { isActive: true } } }
+        }
+      },
+      orderBy: { sortOrder: "asc" }
+    }),
+    CACHE_TTL.CATEGORIES
+  )
 }
 
 interface CatalogPageProps {

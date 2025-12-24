@@ -3,6 +3,8 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { Suspense } from "react"
 import { db } from "@/lib/db"
+import { cached } from "@/lib/cache"
+import { CACHE_KEYS, CACHE_TTL } from "@/lib/cache-keys"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Globe, Smartphone, ShoppingCart, Zap, ArrowRight } from "lucide-react"
@@ -33,34 +35,46 @@ function getSortOrder(sort: SortOption) {
 }
 
 async function getCategory(slug: string, sort: SortOption = "featured") {
-  return db.category.findUnique({
-    where: { slug },
-    include: {
-      seo: true,
-      products: {
-        where: { isActive: true },
-        orderBy: getSortOrder(sort),
+  return cached(
+    `${CACHE_KEYS.CATEGORY_PRODUCTS(slug)}:${sort}`,
+    () => db.category.findUnique({
+      where: { slug },
+      include: {
+        seo: true,
+        products: {
+          where: { isActive: true },
+          orderBy: getSortOrder(sort),
+        },
       },
-    },
-  })
+    }),
+    CACHE_TTL.PRODUCTS
+  )
 }
 
 async function getCategories() {
-  return db.category.findMany({
-    where: { isActive: true },
-    include: {
-      _count: {
-        select: { products: { where: { isActive: true } } }
-      }
-    },
-    orderBy: { sortOrder: "asc" }
-  })
+  return cached(
+    CACHE_KEYS.CATEGORIES,
+    () => db.category.findMany({
+      where: { isActive: true },
+      include: {
+        _count: {
+          select: { products: { where: { isActive: true } } }
+        }
+      },
+      orderBy: { sortOrder: "asc" }
+    }),
+    CACHE_TTL.CATEGORIES
+  )
 }
 
 async function getTotalProducts() {
-  return db.product.count({
-    where: { isActive: true }
-  })
+  return cached(
+    'products:count',
+    () => db.product.count({
+      where: { isActive: true }
+    }),
+    CACHE_TTL.PRODUCTS
+  )
 }
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
