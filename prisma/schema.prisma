@@ -19,6 +19,8 @@ model User {
   name          String?
   role          String    @default("CUSTOMER") // ADMIN, CUSTOMER
   orders        Order[]
+  orderMessages OrderMessage[]
+  stageComments StageComment[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -60,11 +62,13 @@ model Product {
   category      Category    @relation(fields: [categoryId], references: [id])
   seo           SeoMeta?
   orderItems    OrderItem[]
+  stageTemplates StageTemplate[]
   productType   String      @default("WEB_APP") // WEB_APP, MOBILE_APP
   features      String?     // JSON массив характеристик
   isActive      Boolean     @default(true)
   isFeatured    Boolean     @default(false) // Рекомендуемый товар
   downloads     Int         @default(0) // Счётчик скачиваний
+  supportDays   Int         @default(30) // Дней поддержки после установки
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 }
@@ -94,14 +98,18 @@ model Order {
   userId        String
   user          User        @relation(fields: [userId], references: [id])
   items         OrderItem[]
+  stages        InstallationStage[]
+  messages      OrderMessage[]
   total         Float
   status        String      @default("PENDING") // PENDING, PAID, CANCELLED, REFUNDED
+  installationStatus String @default("NOT_STARTED") // NOT_STARTED, IN_PROGRESS, COMPLETED, SUPPORT
   paymentId     String?     // YooKassa payment ID
   paymentMethod String?     // Метод оплаты
   customerEmail String      // Email для уведомлений
   customerName  String?
   notes         String?     // Примечания к заказу
   paidAt        DateTime?   // Дата оплаты
+  supportEndsAt DateTime?   // Когда заканчивается поддержка
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 }
@@ -155,4 +163,72 @@ model Review {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ==================== ЭТАПЫ УСТАНОВКИ ====================
+
+// Шаблон этапа для товара
+model StageTemplate {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  title       String   // Название этапа
+  description String   @db.Text // Описание что нужно сделать (markdown)
+  type        String   // CLIENT_ACTION, ADMIN_WORK, CONFIRMATION
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([productId])
+}
+
+// Этап установки конкретного заказа
+model InstallationStage {
+  id          String    @id @default(cuid())
+  orderId     String
+  order       Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  title       String
+  description String    @db.Text
+  type        String    // CLIENT_ACTION, ADMIN_WORK, CONFIRMATION
+  status      String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  sortOrder   Int       @default(0)
+  completedAt DateTime?
+  completedBy String?   // userId кто завершил
+  comments    StageComment[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([orderId])
+}
+
+// ==================== ЧАТ И СООБЩЕНИЯ ====================
+
+// Сообщения в общем чате заказа
+model OrderMessage {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  content   String   @db.Text
+  files     String?  @db.Text // JSON array файлов
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@index([userId])
+}
+
+// Комментарии к этапу
+model StageComment {
+  id        String            @id @default(cuid())
+  stageId   String
+  stage     InstallationStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User              @relation(fields: [userId], references: [id])
+  content   String            @db.Text
+  files     String?           @db.Text // JSON array файлов
+  createdAt DateTime          @default(now())
+
+  @@index([stageId])
+  @@index([userId])
 }
