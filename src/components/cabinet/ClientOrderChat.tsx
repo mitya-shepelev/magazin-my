@@ -1,7 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
@@ -21,8 +20,12 @@ import {
   Image as ImageIcon,
   X,
   Headphones,
+  Circle,
 } from "lucide-react"
 import { toast } from "sonner"
+import { useOrderChat } from "@/hooks/useOrderChat"
+import { useTyping } from "@/hooks/useTyping"
+import type { MessagePayload } from "@/lib/socket-types"
 
 interface Message {
   id: string
@@ -49,8 +52,33 @@ interface FileInfo {
   type: string
 }
 
-export function ClientOrderChat({ orderId, messages, currentUserId }: ClientOrderChatProps) {
-  const router = useRouter()
+// Convert server message to socket payload format
+function convertToPayload(msg: Message): MessagePayload {
+  return {
+    id: msg.id,
+    orderId: "",
+    userId: msg.user.id,
+    content: msg.content,
+    files: msg.files ? JSON.parse(msg.files) : [],
+    isRead: msg.isRead,
+    createdAt: new Date(msg.createdAt).toISOString(),
+    user: msg.user,
+  }
+}
+
+export function ClientOrderChat({ orderId, messages: initialMessages, currentUserId }: ClientOrderChatProps) {
+  // Convert initial messages to payload format
+  const initialPayloads = initialMessages.map(convertToPayload)
+
+  const {
+    messages,
+    isTyping,
+    onlineUsers,
+    isConnected,
+    startTyping,
+    stopTyping,
+  } = useOrderChat({ orderId, initialMessages: initialPayloads })
+
   const [messageText, setMessageText] = useState("")
   const [isSending, setIsSending] = useState(false)
   const [files, setFiles] = useState<File[]>([])
@@ -58,7 +86,13 @@ export function ClientOrderChat({ orderId, messages, currentUserId }: ClientOrde
   const scrollRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Auto-scroll to bottom
+  // Typing handler with debounce
+  const { handleTyping } = useTyping({
+    onStartTyping: startTyping,
+    onStopTyping: stopTyping,
+  })
+
+  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
@@ -70,6 +104,7 @@ export function ClientOrderChat({ orderId, messages, currentUserId }: ClientOrde
     if (!content && files.length === 0) return
 
     setIsSending(true)
+    stopTyping()
 
     try {
       // Upload files first
@@ -97,7 +132,8 @@ export function ClientOrderChat({ orderId, messages, currentUserId }: ClientOrde
         setIsUploading(false)
       }
 
-      // Send message
+      // Send message via REST API
+      // Real-time delivery happens via WebSocket from server
       const res = await fetch(`/api/orders/${orderId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -111,7 +147,7 @@ export function ClientOrderChat({ orderId, messages, currentUserId }: ClientOrde
 
       setMessageText("")
       setFiles([])
-      router.refresh()
+      // No router.refresh() needed - message arrives via WebSocket
     } catch (error) {
       toast.error("Ошибка отправки сообщения")
     } finally {
@@ -142,15 +178,6 @@ export function ClientOrderChat({ orderId, messages, currentUserId }: ClientOrde
     setFiles((prev) => prev.filter((_, i) => i !== index))
   }
 
-  const parseFiles = (filesJson: string | null): FileInfo[] => {
-    if (!filesJson) return []
-    try {
-      return JSON.parse(filesJson)
-    } catch {
-      return []
-    }
-  }
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
@@ -158,12 +185,36 @@ export function ClientOrderChat({ orderId, messages, currentUserId }: ClientOrde
     }
   }
 
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessageText(e.target.value)
+    handleTyping()
+  }
+
+  // Check if admin is online
+  const isAdminOnline = onlineUsers.some((userId) => userId !== currentUserId)
+
   return (
     <Card className="flex flex-col">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Headphones className="h-5 w-5" />
-          Чат с поддержкой
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Headphones className="h-5 w-5" />
+            Чат с поддержкой
+          </div>
+          <div className="flex items-center gap-2 text-sm font-normal">
+            {isConnected ? (
+              <>
+                <Circle
+                  className={`h-2 w-2 ${isAdminOnline ? "fill-green-500 text-green-500" : "fill-gray-400 text-gray-400"}`}
+                />
+                <span className="text-muted-foreground">
+                  {isAdminOnline ? "Специалист онлайн" : "Специалист оффлайн"}
+                </span>
+              </>
+            ) : (
+              <span className="text-muted-foreground text-xs">Подключение...</span>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
@@ -180,8 +231,7 @@ export function ClientOrderChat({ orderId, messages, currentUserId }: ClientOrde
               </div>
             ) : (
               messages.map((message) => {
-                const isMe = message.user.id === currentUserId
-                const messageFiles = parseFiles(message.files)
+                const isMe = message.userId === currentUserId
 
                 return (
                   <div
@@ -211,9 +261,9 @@ export function ClientOrderChat({ orderId, messages, currentUserId }: ClientOrde
                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
 
                       {/* Files */}
-                      {messageFiles.length > 0 && (
+                      {message.files.length > 0 && (
                         <div className="mt-2 space-y-1">
-                          {messageFiles.map((file, idx) => (
+                          {message.files.map((file, idx) => (
                             <a
                               key={idx}
                               href={file.url}
@@ -248,6 +298,22 @@ export function ClientOrderChat({ orderId, messages, currentUserId }: ClientOrde
                   </div>
                 )
               })
+            )}
+
+            {/* Typing indicator */}
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="bg-muted rounded-lg px-4 py-2">
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm text-muted-foreground">Специалист печатает</span>
+                    <span className="flex gap-1">
+                      <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </span>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </ScrollArea>
@@ -300,7 +366,7 @@ export function ClientOrderChat({ orderId, messages, currentUserId }: ClientOrde
             <Textarea
               placeholder="Написать сообщение..."
               value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
+              onChange={handleTextChange}
               onKeyDown={handleKeyDown}
               rows={1}
               className="resize-none min-h-[40px]"
