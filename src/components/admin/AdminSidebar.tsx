@@ -14,6 +14,7 @@ import {
   ArrowLeft,
   Store,
   ChevronRight,
+  Database,
 } from "lucide-react"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
 
@@ -59,6 +60,12 @@ const menuItems = [
     href: "/admin/settings",
     icon: Settings,
     description: "Параметры магазина",
+  },
+  {
+    title: "Кеш",
+    href: "/admin/cache",
+    icon: Database,
+    description: "Мониторинг Redis",
   },
 ]
 

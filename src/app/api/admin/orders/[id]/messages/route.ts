@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { z } from "zod"
 import { invalidate } from "@/lib/cache"
 import { CACHE_KEYS } from "@/lib/cache-keys"
+import { realtime } from "@/lib/realtime"
 
 const messageSchema = z.object({
   content: z.string().min(1),
@@ -84,7 +85,17 @@ export async function POST(
     // Инвалидация Redis кеша
     await invalidate(CACHE_KEYS.ORDER_MESSAGES(id))
 
-    // TODO: Send notification to client (email via Unisender)
+    // Real-time: publish new message event
+    await realtime.publishMessage(id, {
+      id: message.id,
+      orderId: id,
+      userId: message.userId,
+      content: message.content,
+      files: message.files ? JSON.parse(message.files as string) : [],
+      isRead: message.isRead,
+      createdAt: message.createdAt,
+      user: message.user,
+    })
 
     return NextResponse.json(message, { status: 201 })
   } catch (error) {

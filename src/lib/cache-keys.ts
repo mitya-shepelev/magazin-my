@@ -6,6 +6,12 @@ export const CACHE_KEYS = {
   CATEGORY_PRODUCTS: (slug: string) => `category:${slug}:products`,
   SETTINGS: 'settings:site',
 
+  // Главная страница
+  HOME_FEATURED: 'home:featured',
+  HOME_CATEGORIES: 'home:categories',
+  HOME_REVIEWS: 'home:reviews',
+  HOME_STATS: 'home:stats',
+
   // Пользователи
   USER: (userId: string) => `user:${userId}`,
 

@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  # WebSocket Server
+  ws:
+    build: ./ws-server
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - JWT_SECRET=${WS_JWT_SECRET:-development-secret}
+      - CORS_ORIGIN=http://localhost:3000
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # Redis (if not using external)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+volumes:
+  redis_data:

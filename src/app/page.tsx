@@ -1,5 +1,7 @@
 import Link from "next/link"
 import { db } from "@/lib/db"
+import { cached } from "@/lib/cache"
+import { CACHE_KEYS, CACHE_TTL } from "@/lib/cache-keys"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -22,52 +24,76 @@ import { ImagePlaceholder } from "@/components/ui/image-placeholder"
 import { Header } from "@/components/shared/Header"
 import { Footer } from "@/components/shared/Footer"
 
-// ==================== DATA FETCHING ====================
+// ==================== DATA FETCHING (with Redis Cache) ====================
 
 async function getFeaturedProducts() {
-  // Сначала пробуем получить рекомендуемые товары
-  const featured = await db.product.findMany({
-    where: { isActive: true, isFeatured: true },
-    include: { category: true },
-    take: 3,
-    orderBy: { downloads: "desc" },
-  })
+  return cached(
+    CACHE_KEYS.HOME_FEATURED,
+    async () => {
+      // Сначала пробуем получить рекомендуемые товары
+      const featured = await db.product.findMany({
+        where: { isActive: true, isFeatured: true },
+        include: { category: true },
+        take: 3,
+        orderBy: { downloads: "desc" },
+      })
 
-  // Если нет рекомендуемых — показываем любые активные товары
-  if (featured.length === 0) {
-    return db.product.findMany({
-      where: { isActive: true },
-      include: { category: true },
-      take: 3,
-      orderBy: { createdAt: "desc" },
-    })
-  }
+      // Если нет рекомендуемых — показываем любые активные товары
+      if (featured.length === 0) {
+        return db.product.findMany({
+          where: { isActive: true },
+          include: { category: true },
+          take: 3,
+          orderBy: { createdAt: "desc" },
+        })
+      }
 
-  return featured
+      return featured
+    },
+    CACHE_TTL.PRODUCTS
+  )
 }
 
 async function getCategories() {
-  return db.category.findMany({
-    where: { isActive: true, parentId: null },
-    include: { _count: { select: { products: true } } },
-    orderBy: { sortOrder: "asc" },
-  })
+  return cached(
+    CACHE_KEYS.HOME_CATEGORIES,
+    async () => {
+      return db.category.findMany({
+        where: { isActive: true, parentId: null },
+        include: { _count: { select: { products: true } } },
+        orderBy: { sortOrder: "asc" },
+      })
+    },
+    CACHE_TTL.CATEGORIES
+  )
 }
 
 async function getReviews() {
-  return db.review.findMany({
-    where: { isActive: true },
-    take: 3,
-    orderBy: { createdAt: "desc" },
-  })
+  return cached(
+    CACHE_KEYS.HOME_REVIEWS,
+    async () => {
+      return db.review.findMany({
+        where: { isActive: true },
+        take: 3,
+        orderBy: { createdAt: "desc" },
+      })
+    },
+    CACHE_TTL.CATEGORIES // 5 минут для отзывов
+  )
 }
 
 async function getStats() {
-  const [productCount, orderCount] = await Promise.all([
-    db.product.count({ where: { isActive: true } }),
-    db.order.count({ where: { status: "PAID" } }),
-  ])
-  return { productCount, orderCount }
+  return cached(
+    CACHE_KEYS.HOME_STATS,
+    async () => {
+      const [productCount, orderCount] = await Promise.all([
+        db.product.count({ where: { isActive: true } }),
+        db.order.count({ where: { status: "PAID" } }),
+      ])
+      return { productCount, orderCount }
+    },
+    CACHE_TTL.SETTINGS // 10 минут для статистики
+  )
 }
 
 // ==================== PAGE COMPONENT ====================
