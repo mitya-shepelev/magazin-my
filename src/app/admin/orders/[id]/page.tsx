@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { db } from "@/lib/db"
+import { auth } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -70,7 +71,10 @@ interface OrderDetailPageProps {
 
 export default async function OrderDetailPage({ params }: OrderDetailPageProps) {
   const { id } = await params
-  const order = await getOrder(id)
+  const [order, session] = await Promise.all([
+    getOrder(id),
+    auth()
+  ])
 
   if (!order) {
     notFound()
@@ -206,7 +210,8 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
         <OrderChat
           orderId={order.id}
           messages={order.messages}
-          currentUserId={order.user?.id || ""}
+          currentUserId={session?.user?.id || ""}
+          clientName={order.user?.name || undefined}
         />
       </div>
     </div>

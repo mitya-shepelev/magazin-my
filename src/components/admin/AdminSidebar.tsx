@@ -17,6 +17,8 @@ import {
   Database,
 } from "lucide-react"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
+import { NotificationBadge } from "@/components/notifications/NotificationBadge"
+import { useNotificationContext } from "@/providers/NotificationProvider"
 
 const menuItems = [
   {
@@ -42,6 +44,7 @@ const menuItems = [
     href: "/admin/orders",
     icon: ShoppingCart,
     description: "Обработка заказов",
+    showBadge: true,
   },
   {
     title: "Пользователи",
@@ -71,6 +74,7 @@ const menuItems = [
 
 export function AdminSidebar() {
   const pathname = usePathname()
+  const { unreadCount } = useNotificationContext()
 
   return (
     <aside className="w-72 bg-card border-r min-h-screen flex flex-col">
@@ -97,6 +101,7 @@ export function AdminSidebar() {
             (item.href !== "/admin" && pathname.startsWith(`${item.href}/`))
           const isExactDashboard = item.href === "/admin" && pathname === "/admin"
           const active = isActive || isExactDashboard
+          const showBadge = "showBadge" in item && item.showBadge
 
           return (
             <Link
@@ -110,7 +115,7 @@ export function AdminSidebar() {
               )}
             >
               <div className={cn(
-                "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
+                "w-9 h-9 rounded-lg flex items-center justify-center transition-colors relative",
                 active
                   ? "bg-white/20"
                   : "bg-secondary group-hover:bg-primary/10"
@@ -119,6 +124,7 @@ export function AdminSidebar() {
                   "h-4 w-4",
                   active ? "" : "group-hover:text-primary"
                 )} />
+                {showBadge && <NotificationBadge count={unreadCount} />}
               </div>
               <div className="flex-1">
                 <span className="block">{item.title}</span>

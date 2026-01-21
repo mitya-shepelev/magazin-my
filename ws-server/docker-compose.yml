@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  ws-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: magazin-ws-server
+    restart: unless-stopped
+    ports:
+      - "${WS_PORT:-3001}:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGIN=${CORS_ORIGIN:-https://your-domain.com}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - magazin-network
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: magazin-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass $REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    ports:
+      - "${REDIS_EXTERNAL_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - magazin-network
+
+networks:
+  magazin-network:
+    driver: bridge
+
+volumes:
+  redis-data:

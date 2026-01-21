@@ -10,6 +10,14 @@ datasource db {
   provider = "postgresql"
 }
 
+// ==================== ENUMS ====================
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
 // ==================== ПОЛЬЗОВАТЕЛИ ====================
 
 model User {
@@ -204,15 +212,18 @@ model InstallationStage {
 
 // Сообщения в общем чате заказа
 model OrderMessage {
-  id        String   @id @default(cuid())
-  orderId   String
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  content   String   @db.Text
-  files     String?  @db.Text // JSON array файлов
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id          String        @id @default(cuid())
+  orderId     String
+  order       Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  content     String        @db.Text
+  files       String?       @db.Text // JSON array файлов
+  isRead      Boolean       @default(false) // deprecated, use status
+  status      MessageStatus @default(SENT)
+  deliveredAt DateTime?
+  readAt      DateTime?
+  createdAt   DateTime      @default(now())
 
   @@index([orderId])
   @@index([userId])

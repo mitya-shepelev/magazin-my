@@ -8,7 +8,7 @@ import { realtime } from "@/lib/realtime"
 
 const createMessageSchema = z.object({
   content: z.string().min(1, "Сообщение не может быть пустым"),
-  files: z.string().optional(), // JSON array файлов
+  files: z.string().nullish(), // JSON array файлов (nullable + optional)
 })
 
 // GET /api/orders/[id]/messages - получить сообщения заказа
@@ -142,7 +142,10 @@ export async function POST(
       content: message.content,
       files: message.files ? JSON.parse(message.files as string) : [],
       isRead: message.isRead,
-      createdAt: message.createdAt,
+      status: message.status,
+      deliveredAt: message.deliveredAt?.toISOString() || null,
+      readAt: message.readAt?.toISOString() || null,
+      createdAt: message.createdAt.toISOString(),
       user: message.user,
     })
 

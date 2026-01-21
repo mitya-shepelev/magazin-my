@@ -93,7 +93,10 @@ export async function POST(
       content: message.content,
       files: message.files ? JSON.parse(message.files as string) : [],
       isRead: message.isRead,
-      createdAt: message.createdAt,
+      status: message.status,
+      deliveredAt: message.deliveredAt?.toISOString() || null,
+      readAt: message.readAt?.toISOString() || null,
+      createdAt: message.createdAt.toISOString(),
       user: message.user,
     })
 

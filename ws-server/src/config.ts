@@ -9,6 +9,6 @@ export const config = {
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
     password: process.env.REDIS_PASSWORD || undefined,
   },
-  jwtSecret: process.env.JWT_SECRET || 'development-secret',
+  jwtSecret: process.env.WS_JWT_SECRET || 'development-secret',
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
 }

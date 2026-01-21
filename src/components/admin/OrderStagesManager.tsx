@@ -192,7 +192,7 @@ export function OrderStagesManager({
   const progress = Math.round((completedCount / stages.length) * 100)
 
   return (
-    <Card className="flex flex-col h-full">
+    <Card className="flex flex-col h-[600px]">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Этапы установки</span>

@@ -15,7 +15,7 @@ export default async function AdminLayout({
   }
 
   return (
-    <SocketWrapper>
+    <SocketWrapper currentUserId={session.user.id}>
       <div className="flex min-h-screen bg-background">
         <AdminSidebar />
         <main className="flex-1 overflow-auto">

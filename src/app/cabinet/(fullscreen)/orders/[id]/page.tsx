@@ -78,9 +78,9 @@ export default async function ClientOrderPage({ params }: ClientOrderPageProps) 
   const progress = order.stages.length > 0 ? Math.round((completedStages / order.stages.length) * 100) : 0
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 mb-4">
         <Link href="/cabinet/orders">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
@@ -101,8 +101,25 @@ export default async function ClientOrderPage({ params }: ClientOrderPageProps) 
         </div>
       </div>
 
-      {/* Top row - Compact info cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Main content - Stages and Chat */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-[600px] mb-4">
+        {/* Stages */}
+        <ClientStagesProgress
+          orderId={order.id}
+          stages={order.stages}
+          currentUserId={session.user.id}
+        />
+
+        {/* Chat */}
+        <ClientOrderChat
+          orderId={order.id}
+          messages={order.messages}
+          currentUserId={session.user.id}
+        />
+      </div>
+
+      {/* Bottom row - Compact info cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Progress */}
         <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
           <CardContent className="p-4">
@@ -177,8 +194,8 @@ export default async function ClientOrderPage({ params }: ClientOrderPageProps) 
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
-                <Calendar className="h-5 w-5 text-blue-600" />
+              <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0">
+                <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Дата заказа</p>
@@ -196,15 +213,15 @@ export default async function ClientOrderPage({ params }: ClientOrderPageProps) 
 
         {/* Support period */}
         {order.supportEndsAt ? (
-          <Card className="border-purple-200 bg-purple-50/50">
+          <Card className="border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/50">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
-                  <HelpCircle className="h-5 w-5 text-purple-600" />
+                <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900 flex items-center justify-center shrink-0">
+                  <HelpCircle className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">Поддержка до</p>
-                  <p className="font-medium text-purple-900">
+                  <p className="font-medium text-purple-900 dark:text-purple-100">
                     {new Date(order.supportEndsAt).toLocaleDateString("ru-RU", {
                       day: "numeric",
                       month: "short",
@@ -230,23 +247,6 @@ export default async function ClientOrderPage({ params }: ClientOrderPageProps) 
             </CardContent>
           </Card>
         )}
-      </div>
-
-      {/* Main content - Stages and Chat (wide) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Stages */}
-        <ClientStagesProgress
-          orderId={order.id}
-          stages={order.stages}
-          currentUserId={session.user.id}
-        />
-
-        {/* Chat */}
-        <ClientOrderChat
-          orderId={order.id}
-          messages={order.messages}
-          currentUserId={session.user.id}
-        />
       </div>
     </div>
   )

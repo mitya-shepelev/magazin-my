@@ -9,6 +9,25 @@ const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3001"
 
 let socket: TypedSocket | null = null
 let connectionPromise: Promise<TypedSocket> | null = null
+let currentToken: string | null = null
+
+/**
+ * Get fresh token from API
+ */
+async function getToken(): Promise<string> {
+  const response = await fetch("/api/auth/ws-token", {
+    method: "POST",
+    credentials: "include",
+  })
+
+  if (!response.ok) {
+    throw new Error("Failed to get WebSocket token")
+  }
+
+  const { token } = await response.json()
+  currentToken = token
+  return token
+}
 
 /**
  * Get or create socket connection
@@ -30,19 +49,10 @@ export async function getSocket(): Promise<TypedSocket> {
   return connectionPromise
 }
 
-async function createConnection(): Promise<TypedSocket> {
+async function createConnection(retryCount = 0): Promise<TypedSocket> {
   try {
-    // Get WebSocket token from API
-    const response = await fetch("/api/auth/ws-token", {
-      method: "POST",
-      credentials: "include",
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to get WebSocket token")
-    }
-
-    const { token } = await response.json()
+    // Get fresh WebSocket token
+    const token = await getToken()
 
     // Create socket connection
     socket = io(WS_URL, {
@@ -83,6 +93,17 @@ async function createConnection(): Promise<TypedSocket> {
       }
     })
 
+    // Handle token expiration - get new token and reconnect
+    socket.on("connect_error", async (error) => {
+      if (error.message === "Token expired" || error.message === "Invalid token") {
+        console.log("[Socket] Token expired, refreshing...")
+        connectionPromise = null
+        socket?.disconnect()
+        socket = null
+        // Will reconnect with fresh token on next getSocket() call
+      }
+    })
+
     socket.on("error", (data) => {
       console.error("[Socket] Error:", data.message)
     })
@@ -90,6 +111,14 @@ async function createConnection(): Promise<TypedSocket> {
     return socket
   } catch (error) {
     connectionPromise = null
+
+    // Retry once with fresh token if token-related error
+    if (retryCount === 0 && error instanceof Error &&
+        (error.message.includes("Token") || error.message.includes("token"))) {
+      console.log("[Socket] Retrying with fresh token...")
+      return createConnection(1)
+    }
+
     throw error
   }
 }

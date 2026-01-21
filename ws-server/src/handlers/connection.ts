@@ -27,6 +27,25 @@ export function setupConnectionHandlers(
   // If admin, join admin room for order list updates
   if (role === 'ADMIN') {
     socket.join('admin:orders')
+
+    // Send current online status for all orders
+    sendCurrentOnlineStatus(socket)
+  }
+
+  async function sendCurrentOnlineStatus(adminSocket: AuthenticatedSocket) {
+    try {
+      // Get all online:order:* keys
+      const keys = await redis.keys('online:order:*')
+      for (const key of keys) {
+        const orderId = key.replace('online:order:', '')
+        const onlineUsers = await redis.smembers(key)
+        for (const onlineUserId of onlineUsers) {
+          adminSocket.emit('user:online', { userId: onlineUserId, orderId })
+        }
+      }
+    } catch (error) {
+      console.error('[Socket] Error sending online status to admin:', error)
+    }
   }
 
   // Handle joining order room
@@ -37,14 +56,25 @@ export function setupConnectionHandlers(
     }
 
     const roomName = `order:${orderId}`
+
+    // Get currently online users BEFORE joining
+    const onlineUsers = await redis.smembers(`online:order:${orderId}`)
+
     socket.join(roomName)
 
     // Track user in order room
     await redis.sadd(`online:order:${orderId}`, userId)
     await redis.hset(`presence:${userId}`, 'currentOrder', orderId)
 
-    // Notify others in room
-    socket.to(roomName).emit('user:online', { userId, orderId })
+    // Send the joining user a list of who's already online
+    for (const onlineUserId of onlineUsers) {
+      if (onlineUserId !== userId) {
+        socket.emit('user:online', { userId: onlineUserId, orderId })
+      }
+    }
+
+    // Notify others in room (including the joining user so they see themselves as online)
+    io.to(roomName).emit('user:online', { userId, orderId })
 
     // Notify admins
     io.to('admin:orders').emit('user:online', { userId, orderId })

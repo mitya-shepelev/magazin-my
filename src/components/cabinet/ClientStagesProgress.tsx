@@ -162,15 +162,15 @@ export function ClientStagesProgress({
   }
 
   return (
-    <Card className="flex flex-col">
-      <CardHeader>
+    <Card className="flex flex-col h-[600px]">
+      <CardHeader className="shrink-0">
         <CardTitle className="flex items-center gap-2">
           <Settings className="h-5 w-5" />
           Этапы установки
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 p-0">
-        <ScrollArea className="h-[500px] px-6 pb-6">
+      <CardContent className="flex-1 p-0 min-h-0">
+        <ScrollArea className="h-full px-6 pb-6">
           <div className="space-y-3">
             {stages.map((stage, index) => {
               const typeInfo = STAGE_TYPES[stage.type as keyof typeof STAGE_TYPES]

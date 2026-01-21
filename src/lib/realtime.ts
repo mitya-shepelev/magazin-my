@@ -7,7 +7,10 @@ interface MessagePayload {
   content: string
   files: Array<{ name: string; url: string; type: string }>
   isRead: boolean
-  createdAt: Date
+  status: string
+  deliveredAt: string | null
+  readAt: string | null
+  createdAt: string
   user: {
     id: string
     name: string | null

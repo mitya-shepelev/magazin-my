@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useCallback, useRef } from "react"
 import { useSocketContext } from "@/providers/SocketProvider"
-import type { MessagePayload, TypingPayload, PresencePayload } from "@/lib/socket-types"
+import type { MessagePayload, TypingPayload, PresencePayload, ReadPayload } from "@/lib/socket-types"
 
 interface UseOrderChatOptions {
   orderId: string
   initialMessages?: MessagePayload[]
+  currentUserId?: string // Needed to know which messages to mark as read
 }
 
 interface UseOrderChatReturn {
@@ -19,11 +20,13 @@ interface UseOrderChatReturn {
   startTyping: () => void
   stopTyping: () => void
   markAsRead: (messageId: string) => void
+  markMessagesAsRead: (messageIds: string[]) => Promise<void>
 }
 
 export function useOrderChat({
   orderId,
   initialMessages = [],
+  currentUserId,
 }: UseOrderChatOptions): UseOrderChatReturn {
   const { socket, isConnected } = useSocketContext()
   const [messages, setMessages] = useState<MessagePayload[]>(initialMessages)
@@ -31,6 +34,7 @@ export function useOrderChat({
   const [onlineUsers, setOnlineUsers] = useState<string[]>([])
   const joinedRef = useRef(false)
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const markedAsReadRef = useRef<Set<string>>(new Set())
 
   // Join room when connected
   useEffect(() => {
@@ -127,6 +131,60 @@ export function useOrderChat({
     }
   }, [socket, orderId])
 
+  // Listen for read events
+  useEffect(() => {
+    if (!socket) return
+
+    const handleRead = (data: ReadPayload) => {
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (data.messageIds.includes(msg.id)) {
+            return {
+              ...msg,
+              status: "READ" as const,
+              isRead: true,
+              readAt: new Date().toISOString(),
+            }
+          }
+          return msg
+        })
+      )
+    }
+
+    socket.on("message:read", handleRead)
+
+    return () => {
+      socket.off("message:read", handleRead)
+    }
+  }, [socket])
+
+  // Mark unread messages as read when component mounts or new messages arrive
+  useEffect(() => {
+    if (!currentUserId) return
+
+    // Find messages from other users that haven't been read yet
+    const unreadMessageIds = messages
+      .filter(
+        (msg) =>
+          msg.userId !== currentUserId &&
+          msg.status !== "READ" &&
+          !markedAsReadRef.current.has(msg.id)
+      )
+      .map((msg) => msg.id)
+
+    if (unreadMessageIds.length > 0) {
+      // Mark as read via API
+      fetch(`/api/orders/${orderId}/messages/read`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messageIds: unreadMessageIds }),
+      }).then(() => {
+        // Add to tracked set to avoid duplicate calls
+        unreadMessageIds.forEach((id) => markedAsReadRef.current.add(id))
+      }).catch(console.error)
+    }
+  }, [messages, currentUserId, orderId])
+
   // Add message to local state (for optimistic updates)
   const addMessage = useCallback((message: MessagePayload) => {
     setMessages((prev) => [...prev, message])
@@ -145,7 +203,7 @@ export function useOrderChat({
     }
   }, [socket, isConnected, orderId])
 
-  // Mark message as read
+  // Mark message as read (via WebSocket)
   const markAsRead = useCallback(
     (messageId: string) => {
       if (socket && isConnected) {
@@ -153,6 +211,25 @@ export function useOrderChat({
       }
     },
     [socket, isConnected, orderId]
+  )
+
+  // Mark messages as read (via API)
+  const markMessagesAsRead = useCallback(
+    async (messageIds: string[]) => {
+      if (messageIds.length === 0) return
+
+      try {
+        await fetch(`/api/orders/${orderId}/messages/read`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messageIds }),
+        })
+        messageIds.forEach((id) => markedAsReadRef.current.add(id))
+      } catch (error) {
+        console.error("Failed to mark messages as read:", error)
+      }
+    },
+    [orderId]
   )
 
   return {
@@ -165,5 +242,6 @@ export function useOrderChat({
     startTyping,
     stopTyping,
     markAsRead,
+    markMessagesAsRead,
   }
 }

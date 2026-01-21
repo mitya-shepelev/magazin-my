@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone", // For Docker deployment
   reactCompiler: true,
   experimental: {
     serverActions: {

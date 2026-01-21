@@ -1,12 +1,17 @@
 // Shared types for Socket.io client
 
+export type MessageStatus = 'SENT' | 'DELIVERED' | 'READ'
+
 export interface MessagePayload {
   id: string
   orderId: string
   userId: string
   content: string
   files: Array<{ name: string; url: string; type: string }>
-  isRead: boolean
+  isRead: boolean // deprecated, use status
+  status: MessageStatus
+  deliveredAt: string | null
+  readAt: string | null
   createdAt: string
   user: {
     id: string
@@ -26,7 +31,7 @@ export interface PresencePayload {
 }
 
 export interface ReadPayload {
-  messageId: string
+  messageIds: string[]
   readBy: string
 }
 

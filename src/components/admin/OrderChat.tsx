@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardContent,
@@ -20,7 +19,10 @@ import {
   Image as ImageIcon,
   X,
   Circle,
+  Check,
+  CheckCheck,
 } from "lucide-react"
+import { NotificationPermissionBanner } from "@/components/notifications/NotificationPermissionBanner"
 import { toast } from "sonner"
 import { useOrderChat } from "@/hooks/useOrderChat"
 import { useTyping } from "@/hooks/useTyping"
@@ -31,6 +33,9 @@ interface Message {
   content: string
   files: string | null
   isRead: boolean
+  status: string
+  deliveredAt: Date | null
+  readAt: Date | null
   createdAt: Date
   user: {
     id: string
@@ -61,6 +66,9 @@ function convertToPayload(msg: Message): MessagePayload {
     content: msg.content,
     files: msg.files ? JSON.parse(msg.files) : [],
     isRead: msg.isRead,
+    status: (msg.status || "SENT") as "SENT" | "DELIVERED" | "READ",
+    deliveredAt: msg.deliveredAt ? new Date(msg.deliveredAt).toISOString() : null,
+    readAt: msg.readAt ? new Date(msg.readAt).toISOString() : null,
     createdAt: new Date(msg.createdAt).toISOString(),
     user: msg.user,
   }
@@ -77,13 +85,13 @@ export function OrderChat({ orderId, messages: initialMessages, currentUserId, c
     isConnected,
     startTyping,
     stopTyping,
-  } = useOrderChat({ orderId, initialMessages: initialPayloads })
+  } = useOrderChat({ orderId, initialMessages: initialPayloads, currentUserId })
 
   const [messageText, setMessageText] = useState("")
   const [isSending, setIsSending] = useState(false)
   const [files, setFiles] = useState<File[]>([])
   const [isUploading, setIsUploading] = useState(false)
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Typing handler with debounce
@@ -94,9 +102,7 @@ export function OrderChat({ orderId, messages: initialMessages, currentUserId, c
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
   const handleSendMessage = async () => {
@@ -194,8 +200,8 @@ export function OrderChat({ orderId, messages: initialMessages, currentUserId, c
   const isClientOnline = onlineUsers.some((userId) => userId !== currentUserId)
 
   return (
-    <Card className="flex flex-col h-full">
-      <CardHeader>
+    <Card className="flex flex-col h-[600px]">
+      <CardHeader className="shrink-0">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
@@ -217,10 +223,15 @@ export function OrderChat({ orderId, messages: initialMessages, currentUserId, c
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
+      <CardContent className="flex-1 flex flex-col overflow-hidden p-0 min-h-0">
+        {/* Notification permission banner */}
+        <div className="px-6 pt-4 shrink-0">
+          <NotificationPermissionBanner />
+        </div>
+
         {/* Messages */}
-        <ScrollArea className="flex-1 px-6" ref={scrollRef}>
-          <div className="space-y-4 py-4" style={{ minHeight: "400px" }}>
+        <ScrollArea className="flex-1 min-h-0 bg-[#efeae2] dark:bg-zinc-900">
+          <div className="space-y-2 py-3 px-4">
             {messages.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -228,48 +239,48 @@ export function OrderChat({ orderId, messages: initialMessages, currentUserId, c
                 <p className="text-sm">Напишите клиенту первое сообщение</p>
               </div>
             ) : (
-              messages.map((message) => {
+              messages.map((message, index) => {
                 const isAdmin = message.user.role === "ADMIN"
+                const prevMessage = messages[index - 1]
+                const isFirstInGroup = !prevMessage || (prevMessage.user.role === "ADMIN") !== isAdmin
+                const showAvatar = isFirstInGroup && !isAdmin
+                const clientInitial = (message.user.name || "К")[0].toUpperCase()
 
                 return (
                   <div
                     key={message.id}
-                    className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}
+                    className={`flex ${isAdmin ? "justify-end" : "justify-start"} ${!isFirstInGroup ? "mt-0.5" : "mt-2"}`}
                   >
-                    <div
-                      className={`max-w-[80%] rounded-lg p-3 ${
-                        isAdmin
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-medium">
-                          {message.user.name || "Пользователь"}
-                        </span>
-                        {isAdmin && (
-                          <Badge
-                            variant="outline"
-                            className="text-xs bg-white/20 border-white/30"
-                          >
-                            Админ
-                          </Badge>
+                    {/* Avatar placeholder for alignment (client messages) */}
+                    {!isAdmin && (
+                      <div className="w-8 shrink-0 mr-2">
+                        {showAvatar && (
+                          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium">
+                            {clientInitial}
+                          </div>
                         )}
                       </div>
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    )}
+
+                    <div
+                      className={`relative max-w-[70%] rounded-lg px-3 py-1.5 ${
+                        isAdmin
+                          ? `bg-[#d9fdd3] dark:bg-emerald-800 text-gray-800 dark:text-gray-100 ${isFirstInGroup ? "rounded-tr-none" : ""}`
+                          : `bg-white dark:bg-zinc-800 text-gray-800 dark:text-gray-100 shadow-sm dark:shadow-none ${isFirstInGroup ? "rounded-tl-none" : ""}`
+                      }`}
+                    >
+                      <p className="text-[13px] leading-[19px] whitespace-pre-wrap">{message.content}</p>
 
                       {/* Files */}
                       {message.files.length > 0 && (
-                        <div className="mt-2 space-y-1">
+                        <div className="mt-1.5 space-y-1">
                           {message.files.map((file, idx) => (
                             <a
                               key={idx}
                               href={file.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={`flex items-center gap-2 text-xs hover:underline ${
-                                isAdmin ? "text-primary-foreground/80" : "text-primary"
-                              }`}
+                              className="flex items-center gap-1.5 text-xs text-blue-600 hover:underline"
                             >
                               {file.type.startsWith("image/") ? (
                                 <ImageIcon className="h-3 w-3" />
@@ -282,17 +293,32 @@ export function OrderChat({ orderId, messages: initialMessages, currentUserId, c
                         </div>
                       )}
 
-                      <span
-                        className={`text-xs mt-1 block ${
-                          isAdmin ? "text-primary-foreground/60" : "text-muted-foreground"
-                        }`}
-                      >
+                      {/* Time and status - inline at bottom right */}
+                      <span className="float-right ml-2 mt-1 flex items-center gap-0.5 text-[10px] text-gray-500 dark:text-gray-400">
                         {new Date(message.createdAt).toLocaleTimeString("ru-RU", {
                           hour: "2-digit",
                           minute: "2-digit",
                         })}
+                        {isAdmin && (
+                          message.status === "READ" ? (
+                            <CheckCheck className="h-3 w-3 text-blue-500" />
+                          ) : (
+                            <Check className="h-3 w-3" />
+                          )
+                        )}
                       </span>
                     </div>
+
+                    {/* Avatar placeholder for alignment (admin messages) */}
+                    {isAdmin && (
+                      <div className="w-8 shrink-0 ml-2">
+                        {isFirstInGroup && (
+                          <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-medium">
+                            А
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )
               })
@@ -313,6 +339,9 @@ export function OrderChat({ orderId, messages: initialMessages, currentUserId, c
                 </div>
               </div>
             )}
+
+            {/* Scroll anchor */}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
 

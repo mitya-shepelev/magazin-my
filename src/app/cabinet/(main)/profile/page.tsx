@@ -1,38 +1,40 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
-import { Loader2, User } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
 export default function ProfilePage() {
   const { data: session, update } = useSession()
   const [isLoading, setIsLoading] = useState(false)
+  const passwordFormRef = useRef<HTMLFormElement>(null)
 
   async function handleSubmit(formData: FormData) {
     setIsLoading(true)
+    const newName = formData.get("name") as string
 
     try {
       const response = await fetch("/api/user/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.get("name"),
-        }),
+        body: JSON.stringify({ name: newName }),
       })
 
       if (response.ok) {
-        await update()
+        // Update session with new name
+        await update({ name: newName })
         toast.success("Профиль обновлён")
       } else {
-        toast.error("Ошибка при обновлении профиля")
+        const data = await response.json()
+        toast.error(data.error || "Ошибка при обновлении профиля")
       }
     } catch (error) {
+      console.error("Profile update error:", error)
       toast.error("Ошибка при обновлении профиля")
     }
 
@@ -51,8 +53,10 @@ export default function ProfilePage() {
       return
     }
 
-    if (newPassword.length < 6) {
-      toast.error("Пароль должен быть не менее 6 символов")
+    // Валидация: минимум 8 символов, заглавная, строчная буква и цифра
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
+    if (!passwordRegex.test(newPassword)) {
+      toast.error("Пароль должен содержать минимум 8 символов, включая заглавную букву, строчную букву и цифру")
       setIsLoading(false)
       return
     }
@@ -69,6 +73,7 @@ export default function ProfilePage() {
 
       if (response.ok) {
         toast.success("Пароль изменён")
+        passwordFormRef.current?.reset()
       } else {
         const data = await response.json()
         toast.error(data.error || "Ошибка при смене пароля")
@@ -87,8 +92,9 @@ export default function ProfilePage() {
         <p className="text-muted-foreground">Управление вашим аккаунтом</p>
       </div>
 
-      {/* Profile Info */}
-      <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Profile Info */}
+        <Card>
         <CardHeader>
           <CardTitle>Личные данные</CardTitle>
           <CardDescription>Обновите информацию о себе</CardDescription>
@@ -139,7 +145,7 @@ export default function ProfilePage() {
           <CardDescription>Обновите пароль для входа в аккаунт</CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={handlePasswordChange} className="space-y-4">
+          <form ref={passwordFormRef} action={handlePasswordChange} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="currentPassword">Текущий пароль</Label>
               <Input
@@ -158,9 +164,12 @@ export default function ProfilePage() {
                 name="newPassword"
                 type="password"
                 required
-                minLength={6}
+                minLength={8}
                 disabled={isLoading}
               />
+              <p className="text-xs text-muted-foreground">
+                Минимум 8 символов, заглавная и строчная буква, цифра
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -170,7 +179,7 @@ export default function ProfilePage() {
                 name="confirmPassword"
                 type="password"
                 required
-                minLength={6}
+                minLength={8}
                 disabled={isLoading}
               />
             </div>
@@ -188,6 +197,7 @@ export default function ProfilePage() {
           </form>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }
