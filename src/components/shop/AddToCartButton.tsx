@@ -27,6 +27,7 @@ export function AddToCartButton({ product, className, size = "default", showPric
   useEffect(() => {
     // Check if product is already in cart
     const cart = getCart()
+     
     setIsInCart(cart.some((item) => item.id === product.id))
 
     // Listen for cart updates

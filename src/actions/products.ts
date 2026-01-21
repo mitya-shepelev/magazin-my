@@ -207,7 +207,7 @@ export async function updateProduct(id: string, formData: FormData) {
     }
 
     // Обрабатываем изображения
-    let images: string[] = existingImages ? JSON.parse(existingImages) : []
+    const images: string[] = existingImages ? JSON.parse(existingImages) : []
     const imageFiles = formData.getAll("images") as File[]
 
     if (imageFiles.length > 0) {

@@ -12,6 +12,7 @@ export function NotificationPermissionBanner() {
 
   useEffect(() => {
     // Check if notifications are supported
+     
     setIsSupported(typeof window !== "undefined" && "Notification" in window)
   }, [])
 

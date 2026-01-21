@@ -11,7 +11,7 @@ Digital products marketplace (Next.js 16) with real-time chat between customers 
 ```bash
 # Development
 npm run dev              # Start Next.js (port 3000)
-cd ws-server && npm run dev  # Start WebSocket server (port 3001)
+cd ws-server && npm run dev  # Start WebSocket server (port 3004)
 
 # Database
 npm run db:migrate       # Run Prisma migrations
@@ -29,7 +29,7 @@ npm run lint
 ### Two-Service Real-time System
 
 ```
-Next.js App (3000)  ←→  Redis Pub/Sub  ←→  WS Server (3001)
+Next.js App (3000)  ←→  Redis Pub/Sub  ←→  WS Server (3004)
      │                       │                    │
      └──── PostgreSQL ───────┴──── Clients via Socket.io
 ```

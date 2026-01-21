@@ -16,6 +16,7 @@ export default function CartPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
+     
     setCart(getCart())
 
     const handleCartUpdate = (e: CustomEvent<CartItem[]>) => {

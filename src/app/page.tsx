@@ -598,7 +598,7 @@ function ReviewCard({ review, index }: { review: any; index: number }) {
 
       {/* Review Text */}
       <p className="text-foreground/90 italic mb-6 leading-relaxed">
-        "{review.text}"
+        &quot;{review.text}&quot;
       </p>
 
       {/* Divider */}

@@ -49,6 +49,7 @@ export function useNotifications({
   // Check notification permission on mount
   useEffect(() => {
     if (typeof window !== "undefined" && "Notification" in window) {
+       
       setHasPermission(Notification.permission === "granted")
     }
   }, [])
@@ -68,6 +69,7 @@ export function useNotifications({
   }, [])
 
   useEffect(() => {
+     
     refreshUnread()
   }, [refreshUnread])
 

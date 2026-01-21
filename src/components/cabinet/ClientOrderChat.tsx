@@ -114,7 +114,7 @@ export function ClientOrderChat({ orderId, messages: initialMessages, currentUse
 
     try {
       // Upload files first
-      let uploadedFiles: FileInfo[] = []
+      const uploadedFiles: FileInfo[] = []
       if (files.length > 0) {
         setIsUploading(true)
         for (const file of files) {
