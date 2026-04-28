@@ -11,7 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Pencil, Trash2 } from "lucide-react"
+import { Plus, Pencil } from "lucide-react"
 import { DeleteCategoryButton } from "@/components/admin/DeleteCategoryButton"
 
 async function getCategories() {

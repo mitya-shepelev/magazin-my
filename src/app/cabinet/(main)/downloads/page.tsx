@@ -1,9 +1,10 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import Image from "next/image"
 import { Download, Globe, Smartphone, ExternalLink } from "lucide-react"
 
 async function getPurchasedProducts(userId: string) {
@@ -45,11 +46,13 @@ export default async function DownloadsPage() {
               <Card key={item.id}>
                 <CardContent className="p-4">
                   <div className="flex gap-4">
-                    <div className="w-24 h-16 bg-muted rounded-lg overflow-hidden shrink-0">
+                    <div className="w-24 h-16 bg-muted rounded-lg overflow-hidden shrink-0 relative">
                       {images[0] ? (
-                        <img
+                        <Image
                           src={images[0]}
                           alt={item.product.name}
+                          fill
+                          sizes="96px"
                           className="w-full h-full object-cover"
                         />
                       ) : (

@@ -326,7 +326,7 @@ export async function deleteProduct(id: string) {
     await invalidatePattern('related:*')
 
     return { success: true }
-  } catch (error) {
+  } catch {
     return { error: "Ошибка при удалении товара" }
   }
 }

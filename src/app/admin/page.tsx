@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -273,9 +274,11 @@ export default async function AdminDashboard() {
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-muted overflow-hidden">
                           {images[0] ? (
-                            <img
+                            <Image
                               src={images[0]}
                               alt={product.name}
+                              width={40}
+                              height={40}
                               className="w-full h-full object-cover"
                             />
                           ) : (

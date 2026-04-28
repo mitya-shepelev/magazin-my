@@ -74,7 +74,6 @@ const STAGE_TYPES = {
 
 export function StageTemplateManager({
   productId,
-  productName,
   supportDays: initialSupportDays,
   initialTemplates,
 }: StageTemplateManagerProps) {
@@ -159,7 +158,7 @@ export function StageTemplateManager({
 
       setDialogOpen(false)
       resetForm()
-    } catch (error) {
+    } catch {
       toast.error("Ошибка сохранения")
     } finally {
       setIsLoading(false)
@@ -183,7 +182,7 @@ export function StageTemplateManager({
       toast.success("Этап удалён")
       setDeleteDialogOpen(false)
       setDeletingTemplateId(null)
-    } catch (error) {
+    } catch {
       toast.error("Ошибка удаления")
     } finally {
       setIsLoading(false)
@@ -225,7 +224,7 @@ export function StageTemplateManager({
       if (!res.ok) throw new Error("Failed to reorder")
 
       toast.success("Порядок сохранён")
-    } catch (error) {
+    } catch {
       toast.error("Ошибка сохранения порядка")
       // Reload to get correct order
       router.refresh()
@@ -245,7 +244,7 @@ export function StageTemplateManager({
       if (!res.ok) throw new Error("Failed to update")
 
       toast.success("Срок поддержки сохранён")
-    } catch (error) {
+    } catch {
       toast.error("Ошибка сохранения")
     } finally {
       setIsLoading(false)
