@@ -3,21 +3,16 @@ import { db } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Package, Download, ShoppingCart, ArrowRight } from "lucide-react"
+import { Package, KeyRound, ShoppingCart, ArrowRight } from "lucide-react"
 
 async function getUserStats(userId: string) {
-  const [ordersCount, paidOrdersCount, downloadsCount] = await Promise.all([
+  const [ordersCount, paidOrdersCount, licensesCount] = await Promise.all([
     db.order.count({ where: { userId } }),
     db.order.count({ where: { userId, status: "PAID" } }),
-    db.orderItem.count({
-      where: {
-        order: { userId, status: "PAID" },
-        downloadCount: { gt: 0 },
-      },
-    }),
+    db.license.count({ where: { userId } }),
   ])
 
-  return { ordersCount, paidOrdersCount, downloadsCount }
+  return { ordersCount, paidOrdersCount, licensesCount }
 }
 
 async function getRecentOrders(userId: string) {
@@ -75,11 +70,11 @@ export default async function CabinetPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Загрузок</CardTitle>
-            <Download className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Лицензий</CardTitle>
+            <KeyRound className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.downloadsCount}</div>
+            <div className="text-2xl font-bold">{stats.licensesCount}</div>
           </CardContent>
         </Card>
       </div>

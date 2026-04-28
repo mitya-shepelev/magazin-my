@@ -2,14 +2,14 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { User, Package, Download, Settings } from "lucide-react"
+import { User, Package, KeyRound, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useNotificationContext } from "@/providers/NotificationProvider"
 
 const menuItems = [
   { title: "Обзор", href: "/cabinet", icon: User },
   { title: "Мои заказы", href: "/cabinet/orders", icon: Package, showBadge: true },
-  { title: "Загрузки", href: "/cabinet/downloads", icon: Download },
+  { title: "Лицензии", href: "/cabinet/downloads", icon: KeyRound },
   { title: "Профиль", href: "/cabinet/profile", icon: Settings },
 ]
 

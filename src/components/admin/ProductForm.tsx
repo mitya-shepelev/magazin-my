@@ -259,7 +259,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="downloadFile">Файл для скачивания</Label>
+                <Label htmlFor="downloadFile">Пакет для установки</Label>
                 <Input
                   id="downloadFile"
                   name="downloadFile"
@@ -269,7 +269,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                 />
                 {product?.downloadFile && (
                   <p className="text-sm text-muted-foreground">
-                    Текущий файл: {product.downloadFile}
+                    Текущий установочный пакет: {product.downloadFile}
                   </p>
                 )}
               </div>

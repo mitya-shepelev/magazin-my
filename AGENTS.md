@@ -89,7 +89,7 @@ Minimum expectations:
 - Run or document `npm run build`.
 - Build `ws-server` when WebSocket code changes.
 - Include Prisma migrations when schema changes.
-- Include manual QA notes for payment, auth, downloads, order stages, chat, or user-facing UI.
+- Include manual QA notes for payment, auth, licenses, order stages, chat, or user-facing UI.
 
 Known verification status as of 2026-04-28:
 - `npm run lint` fails with existing errors and warnings.
@@ -189,7 +189,7 @@ shadcn/ui components in `src/components/ui/`. Import from `@/components/ui/butto
 ### File Handling
 
 - Sanitize filenames before storage.
-- Keep private downloads outside public web paths.
+- Keep private installation packages outside public web paths.
 - Validate MIME type and file size on every upload endpoint.
 - Do not log sensitive file paths, payment payloads, secrets, or auth tokens in production.
 
@@ -267,7 +267,7 @@ Production rules:
 - Deploy normal releases from `main`.
 - Use `dev` or a dedicated staging stack for pre-production validation.
 - Run Prisma migrations as part of the deploy flow before serving new app code.
-- Keep PostgreSQL, Redis, uploads, and private downloads on persistent volumes or managed services with backups.
+- Keep PostgreSQL, Redis, uploads, and private installation packages on persistent volumes or managed services with backups.
 
 ## Before Shipping Changes
 
@@ -282,12 +282,12 @@ If those fail on pre-existing issues, record the exact failure category in the f
 
 For frontend work, start the dev server and verify the changed screen in a browser when feasible.
 
-For payment, download, auth, WebSocket, or stage-flow changes, include a manual scenario checklist in the handoff if automated tests are not available.
+For payment, license, auth, WebSocket, or stage-flow changes, include a manual scenario checklist in the handoff if automated tests are not available.
 
 ## Current Release Priorities
 
 1. Make lint pass and exclude generated output from lint scope.
-2. Add basic tests or smoke scripts for auth, checkout, webhook, downloads, stages, and chat APIs.
+2. Add basic tests or smoke scripts for auth, checkout, webhook, licenses, stages, and chat APIs.
 3. Harden production security: rate limiting, CSP, webhook idempotency, secrets validation.
 4. Define production file storage, backups, monitoring, and rollback.
 5. Validate one complete paid-order flow in staging.

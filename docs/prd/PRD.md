@@ -6,16 +6,16 @@
 
 ## Product Vision
 
-Build a marketplace where customers can buy digital products, download purchased files, and complete installation or onboarding through a structured order workspace with direct customer-admin communication.
+Build a marketplace where customers can buy licensed digital products and complete installation or onboarding through a structured order workspace with direct customer-admin communication.
 
-The differentiator is not only selling files. The product also provides a post-payment fulfillment flow: installation stages, customer actions, admin work, confirmations, and real-time chat.
+The differentiator is not selling downloadable files. The product sells the right to use and install a product. After payment, the platform generates a license, starts the installation workflow, and lets customer and admin coordinate server/domain setup.
 
 ## Target Users
 
 | User | Needs |
 | --- | --- |
 | Visitor | Browse categories and product pages, understand product value, add items to cart |
-| Customer | Register, pay, download purchased products, follow installation steps, chat with admin |
+| Customer | Register, pay, view licenses, follow installation steps, chat with admin |
 | Admin | Manage catalog, categories, SEO, settings, orders, installation stages, and customer communication |
 
 ## Business Goals
@@ -39,7 +39,7 @@ The differentiator is not only selling files. The product also provides a post-p
 
 - Register and login with email/password.
 - Session management through NextAuth.
-- Customer cabinet with orders, downloads, and profile management.
+- Customer cabinet with orders, licenses, and profile management.
 - Admin-only dashboard routes.
 
 ### Catalog Admin
@@ -55,8 +55,17 @@ The differentiator is not only selling files. The product also provides a post-p
 - Create payments through RollyPay.
 - Handle payment webhooks.
 - Mark orders as paid.
-- Generate download access through order items.
+- Generate product licenses after paid orders.
+- Bind licenses to domain and server IP during installation/activation.
 - Copy product stage templates into order installation stages.
+
+### Licensing And Installation Workflow
+
+- Customers do not download product source packages.
+- Admins use the order workspace to install the purchased product on the customer server.
+- Each paid order item receives a license key.
+- License activation binds the key to a normalized domain and server IP.
+- Installed products can call the license activation/check endpoint to verify access.
 
 ### Installation Workflow
 
@@ -82,7 +91,6 @@ The differentiator is not only selling files. The product also provides a post-p
 ## Out Of MVP Scope
 
 - Multi-vendor marketplace.
-- Complex license management.
 - Subscription billing.
 - Built-in email campaign system.
 - Full CRM.
@@ -96,8 +104,8 @@ The differentiator is not only selling files. The product also provides a post-p
 - No formal staging acceptance checklist.
 - No rate limiting.
 - CSP is not configured.
-- Production file storage/backup policy is not documented in detail.
-- Webhook idempotency and verification need stronger guarantees.
+- Production file storage/backup policy for admin installation packages is not documented in detail.
+- License revocation/admin editing flows are still basic.
 - Notification push subscription model is planned but not present in Prisma schema.
 - Status/role fields should move toward Prisma enums.
 
@@ -107,7 +115,7 @@ The differentiator is not only selling files. The product also provides a post-p
 - `npm run build` passes in a production-like environment.
 - Critical checkout flow is covered by automated tests or a repeatable QA script.
 - Admin can create a product with stage templates and complete a paid order scenario.
-- Customer can pay, download files, use order chat, complete required stages.
+- Customer can pay, view license details, use order chat, and complete required stages.
 - Deployment docs include migration, rollback, backup, and monitoring steps.
 - Security checklist is reviewed and all High items are closed.
 
@@ -116,7 +124,8 @@ The differentiator is not only selling files. The product also provides a post-p
 - Staging environment mirrors production architecture.
 - Payment webhook is idempotent and monitored.
 - Rate limiting enabled on auth, payment, upload, and chat endpoints.
-- File uploads/downloads have size limits, storage quotas, and backup policy.
+- File uploads and private installation packages have size limits, storage quotas, and backup policy.
+- License activation, revocation, and domain/IP binding are covered by tests or a repeatable QA script.
 - Error tracking and uptime monitoring are configured.
 - Database backup and restore have been tested.
 - Admin operational runbook exists.

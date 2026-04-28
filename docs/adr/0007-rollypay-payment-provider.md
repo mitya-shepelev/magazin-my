@@ -16,7 +16,7 @@ Use RollyPay as the production payment provider and keep a `mock` provider for l
 - Local development can use `PAYMENT_PROVIDER=mock` to complete checkout without external credentials.
 - Payment fulfillment is handled only after webhook confirmation or local mock success.
 - Webhooks verify `X-Signature` and `X-Timestamp` with `ROLLYPAY_WEBHOOK_SECRET`.
-- Order fulfillment is idempotent: duplicate payment events must not create duplicate stages or increment download counters repeatedly.
+- Order fulfillment is idempotent: duplicate payment events must not create duplicate stages, licenses, or product counters repeatedly.
 
 ## Consequences
 
