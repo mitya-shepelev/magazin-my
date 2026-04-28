@@ -56,12 +56,12 @@ export async function createProduct(formData: FormData) {
   const slug = slugify(name, { lower: true, locale: "ru" })
 
   try {
-    // Сохраняем файл для скачивания
+    // Сохраняем приватный установочный пакет для администратора
     let downloadFilePath = ""
     if (downloadFile && downloadFile.size > 0) {
       // Валидация размера файла
       if (downloadFile.size > MAX_DOWNLOAD_SIZE) {
-        return { error: "Файл для скачивания слишком большой (макс. 100MB)" }
+        return { error: "Установочный пакет слишком большой (макс. 100MB)" }
       }
 
       const downloadsDir = path.join(process.cwd(), "downloads")
@@ -184,14 +184,14 @@ export async function updateProduct(id: string, formData: FormData) {
       return { error: "Товар не найден" }
     }
 
-    // Обрабатываем новый файл для скачивания
+    // Обрабатываем новый приватный установочный пакет
     const downloadFile = formData.get("downloadFile") as File
     let downloadFilePath = currentProduct.downloadFile
 
     if (downloadFile && downloadFile.size > 0) {
       // Валидация размера файла
       if (downloadFile.size > MAX_DOWNLOAD_SIZE) {
-        return { error: "Файл для скачивания слишком большой (макс. 100MB)" }
+        return { error: "Установочный пакет слишком большой (макс. 100MB)" }
       }
 
       const downloadsDir = path.join(process.cwd(), "downloads")

@@ -72,7 +72,7 @@ The stack includes:
 - WebSocket server
 - PostgreSQL
 - Redis
-- persistent volumes for database, Redis, uploads, and private downloads
+- persistent volumes for database, Redis, uploads, and private installation packages
 
 ### 3. Configure Environment Variables
 

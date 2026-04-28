@@ -189,7 +189,7 @@ export default function CartPage() {
           </Card>
 
           <p className="text-sm text-muted-foreground text-center mt-4">
-            После оплаты вы получите ссылки для скачивания на email
+            После оплаты мы создадим лицензию и откроем заказ на установку
           </p>
         </div>
       </div>

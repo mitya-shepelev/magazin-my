@@ -1,4 +1,5 @@
 import { db } from "@/lib/db"
+import { createLicenseForOrderItem } from "@/lib/licenses"
 
 interface MarkOrderPaidParams {
   orderId: string
@@ -63,6 +64,13 @@ export async function markOrderPaid({
   }
 
   for (const item of order.items) {
+    await createLicenseForOrderItem({
+      orderId,
+      orderItemId: item.id,
+      productId: item.productId,
+      userId: order.userId,
+    })
+
     await db.product.update({
       where: { id: item.productId },
       data: {

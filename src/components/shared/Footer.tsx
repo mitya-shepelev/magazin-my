@@ -73,7 +73,7 @@ export function Footer() {
                   href="/cabinet/downloads"
                   className="text-sm text-muted-foreground hover:text-foreground"
                 >
-                  Загрузки
+                  Лицензии
                 </Link>
               </li>
             </ul>

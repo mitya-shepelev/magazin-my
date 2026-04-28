@@ -38,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = settings.seo_title || `${storeName} - Магазин цифровых товаров`
   const description =
     settings.seo_description ||
-    "Магазин веб-приложений и мобильных приложений. Покупайте и скачивайте цифровые продукты."
+    "Магазин веб-приложений и мобильных приложений с лицензиями и установкой под ключ."
   const keywords = settings.seo_keywords
     ? settings.seo_keywords.split(",").map((k) => k.trim())
     : ["веб-приложения", "мобильные приложения", "цифровые товары", "магазин"]

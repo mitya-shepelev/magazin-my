@@ -12,16 +12,16 @@
 - Add missing TypeScript types in storefront cards and webhook helpers.
 - Clean up unused imports and variables.
 - Add a minimal smoke test script/checklist for local QA.
-- Verify the full scenario: create product, define stage templates, register customer, create payment, process webhook, download file, chat, complete stages.
+- Verify the full scenario: create product, define stage templates, register customer, create payment, process webhook, generate license, bind domain/IP, chat, complete stages.
 - Update README from the default Next.js template to project-specific onboarding.
 
 ## Phase 1: Beta Readiness
 
 **Goal:** Prepare for controlled staging/beta use.
 
-- Add automated tests for auth, cart/order creation, payment webhook, downloads, stage updates, and chat message APIs.
+- Add automated tests for auth, cart/order creation, payment webhook, license activation, stage updates, and chat message APIs.
 - Add automated regression tests for idempotent payment webhook handling.
-- Add rate limiting for auth, payment, upload, download, and chat endpoints.
+- Add rate limiting for auth, payment, upload, license activation, and chat endpoints.
 - Add stricter file upload limits and MIME validation across all upload paths.
 - Add environment validation at startup.
 - Convert roles and statuses from free-form strings to Prisma enums where practical.
@@ -35,7 +35,7 @@
 - Add error tracking and structured logging.
 - Add uptime checks for Next.js, WS server, Redis, and PostgreSQL.
 - Document and test database backup/restore.
-- Document production storage for uploads and private downloads.
+- Document production storage for uploads and private installation packages.
 - Add admin audit log for sensitive changes.
 - Add operational runbook for incidents.
 
@@ -46,6 +46,7 @@
 - Improve product media handling with optimized images.
 - Add email notifications for payment success, new admin messages, and stage changes.
 - Add customer-facing order timeline.
+- Add clearer license/domain/IP status to the order workspace.
 - Add better empty states and error states in cabinet pages.
 - Add search/filtering in catalog and admin order list.
 - Add support end-date visibility and reminders.
@@ -59,17 +60,18 @@
 - Add bulk product/category actions.
 - Add installation stage presets and cloning.
 - Add admin metrics: paid orders, revenue, active installations, response time.
+- Add admin tools for license domain/IP edits, suspension, revocation, and reissue.
 
 ## Phase 5: Growth Features
 
 **Goal:** Expand the business surface after the core is stable.
 
 - Add coupons/promocodes.
-- Add license keys or activation tracking.
+- Add signed offline grace tokens for installed products when the license server is temporarily unavailable.
 - Add product bundles.
 - Add customer reviews tied to purchases.
 - Add analytics events and conversion funnel reporting.
-- Add optional external storage integration for private downloads.
+- Add optional external storage integration for private installation packages.
 
 ## Immediate Definition Of Done
 
