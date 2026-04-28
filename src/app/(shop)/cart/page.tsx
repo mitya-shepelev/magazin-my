@@ -13,6 +13,7 @@ import { toast } from "sonner"
 export default function CartPage() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     const initialSync = window.setTimeout(() => {
@@ -93,13 +94,18 @@ export default function CartPage() {
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
                   <div className="w-24 h-16 bg-muted rounded-lg overflow-hidden shrink-0 relative">
-                    {item.image ? (
+                    {item.image &&
+                    !failedImages[item.id] &&
+                    !(item.image.startsWith("/images/products/") && item.image.endsWith(".jpg")) ? (
                       <Image
                         src={item.image}
                         alt={item.name}
                         fill
                         sizes="96px"
                         className="w-full h-full object-cover"
+                        onError={() => {
+                          setFailedImages((prev) => ({ ...prev, [item.id]: true }))
+                        }}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
