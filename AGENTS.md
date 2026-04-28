@@ -282,7 +282,7 @@ If those fail on pre-existing issues, record the exact failure category in the f
 
 For frontend work, start the dev server and verify the changed screen in a browser when feasible.
 
-For payment, license, auth, WebSocket, or stage-flow changes, include a manual scenario checklist in the handoff if automated tests are not available.
+For payment, license, auth, WebSocket, or stage-flow changes, include a manual scenario checklist in the handoff if automated tests are not available. For license changes, verify customer license visibility, activation API behavior, and admin license controls.
 
 ## Current Release Priorities
 

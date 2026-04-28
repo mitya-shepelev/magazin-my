@@ -61,6 +61,7 @@
 - Add installation stage presets and cloning.
 - Add admin metrics: paid orders, revenue, active installations, response time.
 - Add admin tools for license domain/IP edits, suspension, revocation, and reissue.
+- Add license audit history for activation checks and admin support actions.
 
 ## Phase 5: Growth Features
 
