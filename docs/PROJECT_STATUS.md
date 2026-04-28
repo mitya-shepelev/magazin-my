@@ -4,7 +4,7 @@
 
 ## Summary
 
-The project is a functional MVP/alpha for a digital products marketplace. The main business surfaces already exist: public storefront, cart, authentication, customer cabinet, admin catalog management, YooKassa payment flow, paid downloads, installation stages, order chat, Redis caching, and a separate Socket.io server for real-time events.
+The project is a functional MVP/alpha for a digital products marketplace. The main business surfaces already exist: public storefront, cart, authentication, customer cabinet, admin catalog management, RollyPay payment flow, paid downloads, installation stages, order chat, Redis caching, and a separate Socket.io server for real-time events.
 
 The project is not production-ready yet. It needs stabilization, release hardening, and documentation discipline before a public launch.
 
@@ -29,7 +29,7 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 - Customer cabinet with profile, orders, downloads, and fullscreen order page.
 - Admin dashboard for products, categories, orders, settings, cache, SEO pages.
 - Prisma/PostgreSQL domain model for users, products, orders, SEO, reviews, stages, messages.
-- YooKassa payment creation and webhook handling.
+- RollyPay payment creation and webhook handling.
 - Digital download API with paid-order ownership checks.
 - Installation stage templates copied into order stages after payment.
 - Customer/admin order chat with file upload support.
@@ -63,7 +63,7 @@ Main categories:
 | --- | --- | --- |
 | Release quality | Lint fails and there are no tests | High |
 | Security | No rate limiting; CSP not configured; webhook IP logic should be revisited before production | High |
-| Payments | Webhook handling should be idempotent and covered by tests | High |
+| Payments | Webhook handling should be covered by automated tests | High |
 | Files | Upload/download storage paths need production strategy and backup policy | High |
 | Real-time | Redis/WS failure modes need graceful fallback and monitoring | Medium |
 | Data model | Statuses and roles are mostly strings instead of Prisma enums | Medium |

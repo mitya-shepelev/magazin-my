@@ -86,8 +86,11 @@ The stack includes:
 | `REDIS_PASSWORD` | Dockhand secret/environment |
 | `WS_JWT_SECRET` | Dockhand secret/environment; must match the WS service JWT secret |
 | `NEXT_PUBLIC_WS_URL` | Public WebSocket URL |
-| `YOOKASSA_SHOP_ID` | YooKassa cabinet |
-| `YOOKASSA_SECRET_KEY` | Dockhand secret/environment |
+| `PAYMENT_PROVIDER` | `rollypay` in production, `mock` only for local testing |
+| `PAYMENT_CURRENCY` | Payment currency; currently `RUB` for RollyPay |
+| `ROLLYPAY_API_URL` | RollyPay API base URL, defaults to `https://rollypay.io` |
+| `ROLLYPAY_API_KEY` | RollyPay API key from terminal setup |
+| `ROLLYPAY_WEBHOOK_SECRET` | RollyPay webhook signing secret |
 | `NEXT_PUBLIC_APP_URL` | Production app URL |
 | `NEXT_PUBLIC_APP_NAME` | Public app name |
 
