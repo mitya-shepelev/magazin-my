@@ -278,8 +278,8 @@ async function main() {
 
 Для приёма платежей нужны данные от платёжной системы:
 
-- **ЮKassa:** shopId и секретный ключ
-- Или **Stripe:** publishable key и secret key
+- **RollyPay:** API key и signing secret
+- Callback URL для webhook
 
 Отправьте данные в чат.`,
       type: "CLIENT_ACTION",

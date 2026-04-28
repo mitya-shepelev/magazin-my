@@ -111,8 +111,8 @@ model Order {
   total         Float
   status        String      @default("PENDING") // PENDING, PAID, CANCELLED, REFUNDED
   installationStatus String @default("NOT_STARTED") // NOT_STARTED, IN_PROGRESS, COMPLETED, SUPPORT
-  paymentId     String?     // YooKassa payment ID
-  paymentMethod String?     // Метод оплаты
+  paymentId     String?     // Payment provider ID
+  paymentMethod String?     // Payment provider/method
   customerEmail String      // Email для уведомлений
   customerName  String?
   notes         String?     // Примечания к заказу

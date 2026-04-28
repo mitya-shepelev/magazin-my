@@ -52,7 +52,7 @@ The differentiator is not only selling files. The product also provides a post-p
 
 ### Checkout And Fulfillment
 
-- Create payments through YooKassa.
+- Create payments through RollyPay.
 - Handle payment webhooks.
 - Mark orders as paid.
 - Generate download access through order items.

@@ -20,7 +20,7 @@
 **Goal:** Prepare for controlled staging/beta use.
 
 - Add automated tests for auth, cart/order creation, payment webhook, downloads, stage updates, and chat message APIs.
-- Make payment webhook idempotent.
+- Add automated regression tests for idempotent payment webhook handling.
 - Add rate limiting for auth, payment, upload, download, and chat endpoints.
 - Add stricter file upload limits and MIME validation across all upload paths.
 - Add environment validation at startup.
