@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -11,12 +10,13 @@ import { Trash2, ShoppingBag, ArrowRight, Loader2, Globe } from "lucide-react"
 import { toast } from "sonner"
 
 export default function CartPage() {
-  const router = useRouter()
   const [cart, setCart] = useState<CartItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    setCart(getCart())
+    const initialSync = window.setTimeout(() => {
+      setCart(getCart())
+    }, 0)
 
     const handleCartUpdate = (e: CustomEvent<CartItem[]>) => {
       setCart(e.detail)
@@ -24,6 +24,7 @@ export default function CartPage() {
 
     window.addEventListener("cart-updated", handleCartUpdate as EventListener)
     return () => {
+      window.clearTimeout(initialSync)
       window.removeEventListener("cart-updated", handleCartUpdate as EventListener)
     }
   }, [])

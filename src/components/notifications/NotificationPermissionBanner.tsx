@@ -11,8 +11,11 @@ export function NotificationPermissionBanner() {
   const [isSupported, setIsSupported] = useState(false)
 
   useEffect(() => {
-    // Check if notifications are supported
-    setIsSupported(typeof window !== "undefined" && "Notification" in window)
+    const supportCheck = window.setTimeout(() => {
+      setIsSupported("Notification" in window)
+    }, 0)
+
+    return () => window.clearTimeout(supportCheck)
   }, [])
 
   // Don't show if already has permission, dismissed, or not supported

@@ -51,6 +51,8 @@ async function getCategory(slug: string, sort: SortOption = "featured") {
   )
 }
 
+type CategoryProduct = NonNullable<Awaited<ReturnType<typeof getCategory>>>["products"][number]
+
 async function getCategories() {
   return cached(
     CACHE_KEYS.CATEGORIES,
@@ -185,8 +187,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
             {category.products.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {category.products.map((product, index) => (
-                  <ProductCard key={product.id} product={product} categoryName={category.name} index={index} />
+                {category.products.map((product) => (
+                  <ProductCard key={product.id} product={product} categoryName={category.name} />
                 ))}
               </div>
             ) : (
@@ -208,8 +210,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   )
 }
 
-function ProductCard({ product, categoryName, index }: { product: any; categoryName: string; index: number }) {
-  const images = JSON.parse(product.images || "[]")
+function ProductCard({ product, categoryName }: { product: CategoryProduct; categoryName: string }) {
+  const images = JSON.parse(product.images || "[]") as string[]
   const discountPercent = product.oldPrice
     ? Math.round((1 - product.price / product.oldPrice) * 100)
     : 0
