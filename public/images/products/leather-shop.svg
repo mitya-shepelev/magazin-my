@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1184" height="864" viewBox="0 0 1184 864">
+  <rect width="1184" height="864" fill="#111827"/>
+  <rect x="96" y="96" width="992" height="672" rx="48" fill="#f59e0b"/>
+  <rect x="160" y="168" width="864" height="120" rx="24" fill="#1f2937"/>
+  <rect x="160" y="344" width="280" height="280" rx="32" fill="#78350f"/>
+  <rect x="488" y="344" width="280" height="280" rx="32" fill="#92400e"/>
+  <rect x="816" y="344" width="208" height="280" rx="32" fill="#451a03"/>
+  <text x="592" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" font-weight="700" fill="#f9fafb">Leather Shop</text>
+</svg>
