@@ -47,6 +47,8 @@ async function getProducts(sort: SortOption = "featured") {
   )
 }
 
+type CatalogProduct = Awaited<ReturnType<typeof getProducts>>[number]
+
 async function getCategories() {
   return cached(
     CACHE_KEYS.CATEGORIES,
@@ -145,8 +147,8 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
 
             {products.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {products.map((product, index) => (
-                  <ProductCard key={product.id} product={product} index={index} />
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             ) : (
@@ -163,8 +165,8 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   )
 }
 
-function ProductCard({ product, index }: { product: any; index: number }) {
-  const images = JSON.parse(product.images || "[]")
+function ProductCard({ product }: { product: CatalogProduct }) {
+  const images = JSON.parse(product.images || "[]") as string[]
   const discountPercent = product.oldPrice
     ? Math.round((1 - product.price / product.oldPrice) * 100)
     : 0

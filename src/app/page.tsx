@@ -54,6 +54,8 @@ async function getFeaturedProducts() {
   )
 }
 
+type HomeProduct = Awaited<ReturnType<typeof getFeaturedProducts>>[number]
+
 async function getCategories() {
   return cached(
     CACHE_KEYS.HOME_CATEGORIES,
@@ -68,6 +70,8 @@ async function getCategories() {
   )
 }
 
+type HomeCategory = Awaited<ReturnType<typeof getCategories>>[number]
+
 async function getReviews() {
   return cached(
     CACHE_KEYS.HOME_REVIEWS,
@@ -81,6 +85,8 @@ async function getReviews() {
     CACHE_TTL.CATEGORIES // 5 минут для отзывов
   )
 }
+
+type HomeReview = Awaited<ReturnType<typeof getReviews>>[number]
 
 async function getStats() {
   return cached(
@@ -396,8 +402,8 @@ export default async function HomePage() {
 
 // ==================== COMPONENTS ====================
 
-function HeroProductCard({ product }: { product: any }) {
-  const images = JSON.parse(product.images || "[]")
+function HeroProductCard({ product }: { product: HomeProduct }) {
+  const images = JSON.parse(product.images || "[]") as string[]
   const discountPercent = product.oldPrice
     ? Math.round((1 - product.price / product.oldPrice) * 100)
     : 0
@@ -414,7 +420,7 @@ function HeroProductCard({ product }: { product: any }) {
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
           ) : (
-            <ImagePlaceholder type={product.productType} size="lg" />
+            <ImagePlaceholder type={product.productType as "WEB_APP" | "MOBILE_APP"} size="lg" />
           )}
 
           {/* Discount Badge */}
@@ -493,8 +499,8 @@ function BenefitCard({
   )
 }
 
-function ProductCard({ product, index }: { product: any; index: number }) {
-  const images = JSON.parse(product.images || "[]")
+function ProductCard({ product, index }: { product: HomeProduct; index: number }) {
+  const images = JSON.parse(product.images || "[]") as string[]
   const discountPercent = product.oldPrice
     ? Math.round((1 - product.price / product.oldPrice) * 100)
     : 0
@@ -511,7 +517,7 @@ function ProductCard({ product, index }: { product: any; index: number }) {
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
           ) : (
-            <ImagePlaceholder type={product.productType} size="md" />
+            <ImagePlaceholder type={product.productType as "WEB_APP" | "MOBILE_APP"} size="md" />
           )}
 
           {discountPercent > 0 && (
@@ -590,7 +596,7 @@ function StepCard({
   )
 }
 
-function ReviewCard({ review, index }: { review: any; index: number }) {
+function ReviewCard({ review, index }: { review: HomeReview; index: number }) {
   return (
     <div className={`glass rounded-2xl p-6 hover-lift reveal-up delay-${(index + 1) * 100}`}>
       {/* Quote Icon */}
@@ -598,7 +604,7 @@ function ReviewCard({ review, index }: { review: any; index: number }) {
 
       {/* Review Text */}
       <p className="text-foreground/90 italic mb-6 leading-relaxed">
-        "{review.text}"
+        &ldquo;{review.text}&rdquo;
       </p>
 
       {/* Divider */}
@@ -634,7 +640,7 @@ function ReviewCard({ review, index }: { review: any; index: number }) {
   )
 }
 
-function CategoryCard({ category, index }: { category: any; index: number }) {
+function CategoryCard({ category, index }: { category: HomeCategory; index: number }) {
   const isWeb = category.slug.includes("web") || !category.slug.includes("mobile")
   const Icon = isWeb ? Globe : Smartphone
 

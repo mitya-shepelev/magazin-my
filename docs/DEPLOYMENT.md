@@ -1,5 +1,37 @@
 # Deployment Guide
 
+## Production Direction
+
+Production deployment is standardized on Dockhand with repository-managed Compose/stack files.
+
+GitHub is the source of truth for:
+
+- application source code
+- CI workflow
+- pull request review history
+- production Compose/stack definitions
+
+Dockhand is responsible for:
+
+- pulling the GitHub repository
+- building and running the production stack
+- storing production environment variables/secrets
+- managing runtime services and logs
+
+Primary files:
+
+- `deploy/dockhand/compose.prod.yml`
+- `docs/DEPLOYMENT.md`
+
+Normal release path:
+
+1. Develop locally.
+2. Merge feature PRs into `dev`.
+3. Validate `dev`.
+4. Open a release PR from `dev` to `main`.
+5. Merge release PR after checks/review.
+6. Deploy `main` in Dockhand.
+
 ## Architecture Overview
 
 ```
@@ -16,92 +48,59 @@
 └─────────────────┘     └─────────────────┘     └─────────────────┘
 ```
 
-## Deployment with Dokploy
+## Deployment With Dockhand
 
 ### 1. Prerequisites
 
-- Dokploy installed and configured
+- Dockhand installed and configured
 - Domain name configured
-- SSL certificates (Let's Encrypt via Dokploy)
+- SSL certificates configured
+- GitHub repository access configured in Dockhand
 
-### 2. Deploy WebSocket Server
+### 2. Configure Stack
 
-#### Create Application in Dokploy
-
-1. Go to Dokploy Dashboard → Create Application
-2. Select "Docker Compose" as source
-3. Connect your Git repository
-4. Set the compose file path: `ws-server/docker-compose.yml`
-
-#### Configure Environment Variables
-
-```env
-# Required
-JWT_SECRET=<same-as-WS_JWT_SECRET-in-nextjs>
-REDIS_HOST=redis
-REDIS_PORT=6379
-REDIS_PASSWORD=<your-redis-password>
-CORS_ORIGIN=https://your-domain.com
-
-# Optional
-WS_PORT=3001
-```
-
-#### Configure Domain & SSL
-
-1. Add domain: `ws.your-domain.com`
-2. Enable SSL (Let's Encrypt)
-3. Configure proxy to port 3001
-4. Enable WebSocket support in proxy settings
-
-### 3. Deploy Next.js Application
-
-#### Create Application in Dokploy
-
-1. Create new application
-2. Select "Nixpacks" or "Dockerfile" as builder
-3. Connect your Git repository
-
-#### Environment Variables
-
-```env
-# Database
-DATABASE_URL=postgresql://user:pass@db-host:5432/magazin_my
-
-# NextAuth
-NEXTAUTH_URL=https://your-domain.com
-NEXTAUTH_SECRET=<generate-secure-secret>
-
-# Redis (same instance as WS server)
-REDIS_HOST=<redis-container-ip-or-service>
-REDIS_PORT=6379
-REDIS_PASSWORD=<your-redis-password>
-
-# WebSocket
-WS_JWT_SECRET=<same-as-JWT_SECRET-in-ws-server>
-NEXT_PUBLIC_WS_URL=wss://ws.your-domain.com
-
-# YooKassa
-YOOKASSA_SHOP_ID=<your-shop-id>
-YOOKASSA_SECRET_KEY=<your-secret-key>
-
-# App
-NEXT_PUBLIC_APP_URL=https://your-domain.com
-NEXT_PUBLIC_APP_NAME="Digital Store"
-
-# Storage
-UPLOAD_DIR=/app/public/uploads
-DOWNLOAD_DIR=/app/private/downloads
-```
-
-### 4. Database Setup
-
-#### Run Migrations
+Use the production Compose file:
 
 ```bash
-# In Dokploy, add a post-deploy command:
-npx prisma migrate deploy
+deploy/dockhand/compose.prod.yml
 ```
+
+The stack includes:
+
+- Next.js app
+- migration job
+- WebSocket server
+- PostgreSQL
+- Redis
+- persistent volumes for database, Redis, uploads, and private downloads
+
+### 3. Configure Environment Variables
+
+| Variable | Source |
+| --- | --- |
+| `POSTGRES_DB` | Dockhand environment |
+| `POSTGRES_USER` | Dockhand environment |
+| `POSTGRES_PASSWORD` | Dockhand secret/environment |
+| `NEXTAUTH_URL` | Production app URL |
+| `NEXTAUTH_SECRET` | Dockhand secret/environment |
+| `REDIS_PASSWORD` | Dockhand secret/environment |
+| `WS_JWT_SECRET` | Dockhand secret/environment; must match the WS service JWT secret |
+| `NEXT_PUBLIC_WS_URL` | Public WebSocket URL |
+| `YOOKASSA_SHOP_ID` | YooKassa cabinet |
+| `YOOKASSA_SECRET_KEY` | Dockhand secret/environment |
+| `NEXT_PUBLIC_APP_URL` | Production app URL |
+| `NEXT_PUBLIC_APP_NAME` | Public app name |
+
+Use the variable list above as the Dockhand environment reference. Never commit real production secrets or env files.
+
+### 4. Domain & SSL
+
+Configure routes in Dockhand:
+
+- app: `https://your-domain.com` → service `app`, port `3000`
+- websocket: `wss://ws.your-domain.com` → service `ws`, port `3001`
+
+Enable WebSocket upgrade support for the `ws` route.
 
 ### 5. Network Configuration
 
@@ -116,29 +115,36 @@ Ensure all services can communicate:
 - **WS Server**: `GET /health` returns `{"status":"ok"}`
 - **Next.js**: Standard Next.js health (responds to requests)
 - **Redis**: `redis-cli ping` returns `PONG`
+- **PostgreSQL**: `pg_isready` passes
 
 ## Local Development
 
 ### Start All Services
 
 ```bash
-# Terminal 1: Redis (if not using system Redis)
-docker run -d --name redis -p 6379:6379 redis:7-alpine
+# Terminal 1: PostgreSQL + Redis in Docker Desktop
+npm run docker:local:up
 
-# Terminal 2: WebSocket Server
+# Terminal 2: Apply migrations
+npm run db:migrate
+
+# Terminal 3: WebSocket Server
 cd ws-server
 npm run dev
 
-# Terminal 3: Next.js
+# Terminal 4: Next.js
 npm run dev
 ```
 
-### Using Docker Compose (WebSocket + Redis)
+### Local Docker Compose
 
 ```bash
-cd ws-server
-docker-compose up -d
+npm run docker:local:up
+npm run docker:local:ps
+npm run docker:local:down
 ```
+
+The local compose file is `docker-compose.local.yml`. It starts PostgreSQL and Redis using values parsed from `.env` by `scripts/docker-local.mjs`.
 
 ## Troubleshooting
 

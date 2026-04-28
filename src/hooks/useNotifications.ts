@@ -48,9 +48,13 @@ export function useNotifications({
 
   // Check notification permission on mount
   useEffect(() => {
-    if (typeof window !== "undefined" && "Notification" in window) {
-      setHasPermission(Notification.permission === "granted")
-    }
+    const permissionCheck = window.setTimeout(() => {
+      if ("Notification" in window) {
+        setHasPermission(Notification.permission === "granted")
+      }
+    }, 0)
+
+    return () => window.clearTimeout(permissionCheck)
   }, [])
 
   // Fetch initial unread count
@@ -68,7 +72,11 @@ export function useNotifications({
   }, [])
 
   useEffect(() => {
-    refreshUnread()
+    const unreadRefresh = window.setTimeout(() => {
+      void refreshUnread()
+    }, 0)
+
+    return () => window.clearTimeout(unreadRefresh)
   }, [refreshUnread])
 
   // Play notification sound

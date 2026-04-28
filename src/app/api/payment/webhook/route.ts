@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import crypto from "crypto"
 
 interface YooKassaWebhookEvent {
   type: string
@@ -73,7 +72,6 @@ export async function POST(request: NextRequest) {
 
     // Handle payment.succeeded event
     if (body.event === "payment.succeeded") {
-      const paymentId = body.object.id
       const orderId = body.object.metadata?.order_id
 
       if (!orderId) {
@@ -153,7 +151,19 @@ export async function POST(request: NextRequest) {
 }
 
 // Создание этапов установки из шаблонов товаров
-async function createInstallationStages(orderId: string, items: any[]) {
+interface OrderItemWithStageTemplates {
+  productId: string
+  product: {
+    name: string
+    stageTemplates: Array<{
+      title: string
+      description: string
+      type: string
+    }>
+  }
+}
+
+async function createInstallationStages(orderId: string, items: OrderItemWithStageTemplates[]) {
   try {
     // Собираем все шаблоны из всех товаров заказа
     const allTemplates: Array<{
