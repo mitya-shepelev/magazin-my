@@ -5,13 +5,29 @@ import { db } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import {
   Card,
   CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card"
-import { ArrowLeft, User, Calendar, Package, CreditCard } from "lucide-react"
+import {
+  ArrowLeft,
+  Calendar,
+  CreditCard,
+  Globe,
+  KeyRound,
+  Package,
+  RotateCcw,
+  Server,
+  ShieldCheck,
+  User,
+} from "lucide-react"
 import { OrderStagesManager } from "@/components/admin/OrderStagesManager"
 import { OrderChat } from "@/components/admin/OrderChat"
+import { resetLicenseBinding, updateLicenseBinding } from "@/actions/licenses"
 
 async function getOrder(id: string) {
   return db.order.findUnique({
@@ -48,6 +64,14 @@ async function getOrder(id: string) {
           },
         },
       },
+      licenses: {
+        orderBy: { createdAt: "asc" },
+        include: {
+          product: {
+            select: { name: true },
+          },
+        },
+      },
     },
   })
 }
@@ -64,6 +88,26 @@ const installationStatusConfig = {
   IN_PROGRESS: { label: "В процессе", className: "bg-blue-100 text-blue-700" },
   COMPLETED: { label: "Завершена", className: "bg-green-100 text-green-700" },
   SUPPORT: { label: "Поддержка", className: "bg-purple-100 text-purple-700" },
+}
+
+const licenseStatusConfig = {
+  ACTIVE: { label: "Активна", className: "bg-green-100 text-green-700" },
+  SUSPENDED: { label: "Приостановлена", className: "bg-yellow-100 text-yellow-700" },
+  REVOKED: { label: "Отозвана", className: "bg-red-100 text-red-700" },
+}
+
+function formatDate(value: Date | null) {
+  if (!value) {
+    return "—"
+  }
+
+  return new Date(value).toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
 }
 
 interface OrderDetailPageProps {
@@ -202,6 +246,92 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
           </Card>
         )}
       </div>
+
+      {order.licenses.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5 text-primary" />
+              Лицензии заказа
+            </CardTitle>
+            <CardDescription>
+              Админ может вручную привязать домен/IP или сбросить привязку перед повторной установкой
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            {order.licenses.map((license) => {
+              const licenseStatus = licenseStatusConfig[license.status as keyof typeof licenseStatusConfig] || licenseStatusConfig.ACTIVE
+
+              return (
+                <div key={license.id} className="rounded-lg border p-4 space-y-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{license.product.name}</p>
+                      <p className="font-mono text-xs text-muted-foreground break-all">
+                        {license.licenseKey}
+                      </p>
+                    </div>
+                    <Badge className={licenseStatus.className}>{licenseStatus.label}</Badge>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Домен</p>
+                      <p>{license.domain || "Не привязан"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">IP сервера</p>
+                      <p>{license.serverIp || "Не привязан"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Активации</p>
+                      <p>{license.activationCount}/{license.maxActivations}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Последняя проверка</p>
+                      <p>{formatDate(license.lastCheckAt)}</p>
+                    </div>
+                  </div>
+
+                  <form action={updateLicenseBinding} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2">
+                    <input type="hidden" name="licenseId" value={license.id} />
+                    <label className="relative">
+                      <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        name="domain"
+                        defaultValue={license.domain || ""}
+                        placeholder="domain.com"
+                        className="pl-9"
+                      />
+                    </label>
+                    <label className="relative">
+                      <Server className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        name="serverIp"
+                        defaultValue={license.serverIp || ""}
+                        placeholder="IP сервера"
+                        className="pl-9"
+                      />
+                    </label>
+                    <Button type="submit" variant="outline" className="gap-2">
+                      <ShieldCheck className="h-4 w-4" />
+                      Сохранить
+                    </Button>
+                  </form>
+
+                  <form action={resetLicenseBinding}>
+                    <input type="hidden" name="licenseId" value={license.id} />
+                    <Button type="submit" variant="ghost" size="sm" className="gap-2">
+                      <RotateCcw className="h-4 w-4" />
+                      Сбросить привязку
+                    </Button>
+                  </form>
+                </div>
+              )
+            })}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Main content - Stages and Chat (wide) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
