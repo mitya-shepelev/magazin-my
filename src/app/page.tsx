@@ -348,13 +348,13 @@ export default async function HomePage() {
                     icon={Globe}
                     title="Веб-приложения"
                     description="CRM, магазины, LMS, порталы"
-                    href="/category/web-apps"
+                    href="/category/veb-prilozheniya"
                   />
                   <CategoryCardPlaceholder
                     icon={Smartphone}
                     title="Мобильные приложения"
                     description="iOS и Android решения"
-                    href="/category/mobile-apps"
+                    href="/category/mobilnye-prilozheniya"
                   />
                 </>
               )}

@@ -36,13 +36,13 @@ export async function Header() {
             Каталог
           </Link>
           <Link
-            href="/category/web-apps"
+            href="/category/veb-prilozheniya"
             className="text-sm font-medium transition-colors hover:text-primary"
           >
             Веб-приложения
           </Link>
           <Link
-            href="/category/mobile-apps"
+            href="/category/mobilnye-prilozheniya"
             className="text-sm font-medium transition-colors hover:text-primary"
           >
             Мобильные приложения

@@ -24,8 +24,9 @@ interface UseNotificationsReturn {
   refreshUnread: () => Promise<void>
 }
 
-// Notification sound (base64 encoded short beep)
-const NOTIFICATION_SOUND_URL = "/sounds/notification.mp3"
+// Inline notification sound avoids a missing static asset in local/dev builds.
+const NOTIFICATION_SOUND_URL =
+  "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA="
 
 export function useNotifications({
   currentUserId,
