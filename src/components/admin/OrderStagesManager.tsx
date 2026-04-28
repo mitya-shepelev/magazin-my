@@ -80,7 +80,6 @@ export function OrderStagesManager({
   orderId,
   stages,
   orderStatus,
-  installationStatus,
 }: OrderStagesManagerProps) {
   const router = useRouter()
   const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set())
@@ -114,7 +113,7 @@ export function OrderStagesManager({
 
       toast.success("Статус обновлён")
       router.refresh()
-    } catch (error) {
+    } catch {
       toast.error("Ошибка обновления статуса")
     } finally {
       setLoadingStages((prev) => {
@@ -143,7 +142,7 @@ export function OrderStagesManager({
       setCommentText((prev) => ({ ...prev, [stageId]: "" }))
       toast.success("Комментарий отправлен")
       router.refresh()
-    } catch (error) {
+    } catch {
       toast.error("Ошибка отправки комментария")
     } finally {
       setSendingComment(null)

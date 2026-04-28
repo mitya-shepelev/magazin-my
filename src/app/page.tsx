@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { db } from "@/lib/db"
 import { cached } from "@/lib/cache"
 import { CACHE_KEYS, CACHE_TTL } from "@/lib/cache-keys"
@@ -414,9 +415,11 @@ function HeroProductCard({ product }: { product: HomeProduct }) {
         {/* Image */}
         <div className="aspect-[4/3] bg-secondary/50 relative overflow-hidden">
           {images[0] ? (
-            <img
+            <Image
               src={images[0]}
               alt={product.name}
+              fill
+              sizes="(min-width: 1024px) 33vw, 100vw"
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
           ) : (
@@ -511,9 +514,11 @@ function ProductCard({ product, index }: { product: HomeProduct; index: number }
         {/* Image */}
         <div className="aspect-[4/3] bg-secondary/50 relative overflow-hidden">
           {images[0] ? (
-            <img
+            <Image
               src={images[0]}
               alt={product.name}
+              fill
+              sizes="(min-width: 768px) 33vw, 100vw"
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
           ) : (

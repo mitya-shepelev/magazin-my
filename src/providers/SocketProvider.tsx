@@ -12,7 +12,6 @@ import { useSession } from "next-auth/react"
 import {
   getSocket,
   disconnectSocket,
-  isConnected,
   type TypedSocket,
 } from "@/lib/socket"
 

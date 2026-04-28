@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -55,7 +56,7 @@ export default function CartPage() {
       if (data.confirmationUrl) {
         window.location.href = data.confirmationUrl
       }
-    } catch (error) {
+    } catch {
       toast.error("Ошибка при создании платежа")
       setIsLoading(false)
     }
@@ -91,11 +92,13 @@ export default function CartPage() {
             <Card key={item.id}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-24 h-16 bg-muted rounded-lg overflow-hidden shrink-0">
+                  <div className="w-24 h-16 bg-muted rounded-lg overflow-hidden shrink-0 relative">
                     {item.image ? (
-                      <img
+                      <Image
                         src={item.image}
                         alt={item.name}
+                        fill
+                        sizes="96px"
                         className="w-full h-full object-cover"
                       />
                     ) : (

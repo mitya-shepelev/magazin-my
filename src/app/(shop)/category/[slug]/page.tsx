@@ -1,6 +1,7 @@
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Suspense } from "react"
 import { db } from "@/lib/db"
 import { cached } from "@/lib/cache"
@@ -222,9 +223,11 @@ function ProductCard({ product, categoryName }: { product: CategoryProduct; cate
         {/* Image */}
         <div className="aspect-[16/10] bg-secondary/50 relative overflow-hidden">
           {images[0] ? (
-            <img
+            <Image
               src={images[0]}
               alt={product.name}
+              fill
+              sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
           ) : (

@@ -18,7 +18,7 @@ export async function PUT(request: NextRequest) {
     })
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Ошибка при обновлении профиля" },
       { status: 500 }

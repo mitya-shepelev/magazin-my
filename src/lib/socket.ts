@@ -9,7 +9,6 @@ const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3001"
 
 let socket: TypedSocket | null = null
 let connectionPromise: Promise<TypedSocket> | null = null
-let currentToken: string | null = null
 
 /**
  * Get fresh token from API
@@ -25,7 +24,6 @@ async function getToken(): Promise<string> {
   }
 
   const { token } = await response.json()
-  currentToken = token
   return token
 }
 
