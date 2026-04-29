@@ -1,6 +1,6 @@
 # Project Status
 
-**Updated:** 2026-04-28
+**Updated:** 2026-04-29
 
 ## Summary
 
@@ -14,8 +14,8 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 
 **Why not beta yet:**
 
-- Automated coverage is limited to the critical smoke flow.
-- Production readiness items remain open: rate limiting, CSP, storage strategy, observability, backup/restore process.
+- Automated coverage is still smoke-level and should be expanded into a broader test suite.
+- Production readiness items remain open: CSP, storage strategy, observability, backup/restore process.
 - Documentation was incomplete before this update: no PRD, no ADR index, no roadmap.
 - Some data fields use string statuses instead of typed enums, which increases regression risk.
 
@@ -30,6 +30,7 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 - RollyPay payment creation and webhook handling.
 - Runtime environment validation for required production URLs and secrets.
 - Redis-backed rate limiting for license activation, payment creation/webhook, chat, uploads, and password changes.
+- RollyPay webhook signature freshness checks.
 - License keys generated for paid order items.
 - License activation endpoint for domain/IP binding.
 - Admin license tools for domain/IP edits, binding reset, suspension, and key reissue.
@@ -37,6 +38,7 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 - Client download API disabled for customer product delivery.
 - Installation stage templates copied into order stages after payment.
 - Critical smoke script for paid order, license, activation, audit, and installation-stage flow.
+- API security smoke script for webhook signatures, chat ownership, upload ownership, and stage permission/order scoping.
 - Customer/admin order chat with file upload support.
 - Socket.io real-time layer bridged through Redis Pub/Sub.
 - Redis caching helpers and cache invalidation helpers.
@@ -49,17 +51,20 @@ Command run:
 
 ```bash
 npm run lint
+npm run build
+npm run smoke:critical
+npm run smoke:api-security
 ```
 
-Result on 2026-04-28: passed after lint cleanup.
+Result on 2026-04-29: passed locally after API security smoke coverage was added.
 
 ## Key Risks
 
 | Area | Risk | Priority |
 | --- | --- | --- |
-| Release quality | Build/lint pass, but automated coverage is still limited to critical smoke checks | High |
-| Security | CSP not configured; webhook IP logic should be revisited before production | High |
-| Payments | Webhook handling should be covered by automated tests | High |
+| Release quality | Build/lint pass, but automated coverage is still smoke-level | High |
+| Security | CSP not configured; webhook IP allowlisting/replay policy should be revisited before production | High |
+| Payments | Webhook signature checks have smoke coverage, but provider edge cases still need broader tests | Medium |
 | Licenses | License activation/revocation and audit events need automated tests | High |
 | Files | Admin installation package storage paths need production strategy and backup policy | High |
 | Real-time | Redis/WS failure modes need graceful fallback and monitoring | Medium |
@@ -70,8 +75,8 @@ Result on 2026-04-28: passed after lint cleanup.
 
 Move from MVP/alpha to beta readiness:
 
-1. Expand automated tests beyond the critical smoke flow: auth, checkout UI, webhook HTTP signatures, order stages, and chat APIs.
+1. Expand automated tests beyond smoke scripts: auth, checkout UI, admin APIs, and provider edge cases.
 2. Add automated tests for license domain/IP edits, suspension, revocation, reissue, and audit events.
-3. Harden production security: CSP, stricter webhook verification, logging policy.
+3. Harden production security: CSP, webhook IP/provider policy, logging policy.
 4. Stabilize deployment: health checks, migrations, backups, monitoring, rollback procedure.
 5. Run an end-to-end paid order scenario in a staging environment.

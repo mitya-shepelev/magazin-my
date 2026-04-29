@@ -282,18 +282,19 @@ Run the narrowest useful checks for the change. Prefer:
 npm run lint
 npm run build
 npm run smoke:critical
+npm run smoke:api-security
 ```
 
 If those fail on pre-existing issues, record the exact failure category in the final handoff. Do not claim production readiness while lint/build are red.
 
 For frontend work, start the dev server and verify the changed screen in a browser when feasible.
 
-For payment, license, auth, WebSocket, or stage-flow changes, include a manual scenario checklist in the handoff if automated tests are not available. For license changes, verify customer license visibility, activation API behavior, admin license controls, and license audit events. Use `npm run smoke:critical` for payment/order/license/stage changes.
+For payment, license, auth, WebSocket, or stage-flow changes, include a manual scenario checklist in the handoff if automated tests are not available. For license changes, verify customer license visibility, activation API behavior, admin license controls, and license audit events. Use `npm run smoke:critical` for payment/order/license/stage changes and `npm run smoke:api-security` for webhook signature, chat, upload, and stage permission changes.
 
 ## Current Release Priorities
 
-1. Expand smoke coverage into focused tests for auth, checkout, webhook signatures, stages, and chat APIs.
-2. Keep `npm run lint`, `npm run build`, and `npm run smoke:critical` green on `dev`.
+1. Expand smoke coverage into focused tests for auth, checkout, and remaining admin APIs.
+2. Keep `npm run lint`, `npm run build`, `npm run smoke:critical`, and `npm run smoke:api-security` green on `dev`.
 3. Harden production security: CSP, webhook idempotency, stricter webhook verification.
 4. Define production file storage, backups, monitoring, and rollback.
 5. Validate one complete paid-order flow in staging.
