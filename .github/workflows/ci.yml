@@ -83,6 +83,9 @@ jobs:
       - name: Critical smoke test
         run: npm run smoke:critical
 
+      - name: API security smoke test
+        run: npm run smoke:api-security
+
       - name: Build
         run: npm run build
 

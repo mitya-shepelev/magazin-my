@@ -18,18 +18,29 @@ interface RollyPayWebhookEvent {
   currency?: string
 }
 
+const WEBHOOK_TIMESTAMP_TOLERANCE_MS = 5 * 60 * 1000
+
 function verifyRollyPaySignature(
   body: string,
   timestamp: string | null,
   signature: string | null
 ): boolean {
-  const signingSecret = env.ROLLYPAY_WEBHOOK_SECRET
+  const signingSecret =
+    process.env.ROLLYPAY_WEBHOOK_SECRET?.trim() || env.ROLLYPAY_WEBHOOK_SECRET
 
   if (!signingSecret) {
     return process.env.NODE_ENV !== "production"
   }
 
   if (!timestamp || !signature) {
+    return false
+  }
+
+  const timestampMs = Number.parseInt(timestamp, 10) * 1000
+  if (
+    !Number.isFinite(timestampMs) ||
+    Math.abs(Date.now() - timestampMs) > WEBHOOK_TIMESTAMP_TOLERANCE_MS
+  ) {
     return false
   }
 
