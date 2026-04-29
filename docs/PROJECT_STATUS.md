@@ -15,7 +15,7 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 **Why not beta yet:**
 
 - Automated coverage is still smoke-level and should be expanded into a broader test suite.
-- Production readiness items remain open: storage strategy, observability, backup/restore process, and staging validation of security headers.
+- Production readiness items remain open: restore drill, observability, and staging validation of security headers.
 - Documentation was incomplete before this update: no PRD, no ADR index, no roadmap.
 - Some data fields use string statuses instead of typed enums, which increases regression risk.
 
@@ -45,6 +45,7 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 - Socket.io real-time layer bridged through Redis Pub/Sub.
 - Redis caching helpers and cache invalidation helpers.
 - Deployment guide for Dokploy-style deployment.
+- Production persistent storage volumes and backup/restore runbook.
 - Security audit document with remaining recommendations.
 
 ## Verification Snapshot
@@ -68,7 +69,7 @@ Result on 2026-04-29: passed locally after API security smoke coverage was added
 | Security | Baseline CSP exists, but staging should validate real payment, image, and WebSocket origins; webhook IP allowlisting/replay policy should be revisited before production | High |
 | Payments | Webhook signature and duplicate-delivery behavior have smoke coverage, but provider edge cases still need broader tests | Medium |
 | Licenses | License activation/revocation and audit events need automated tests | High |
-| Files | Admin installation package storage paths need production strategy and backup policy | High |
+| Files | Persistent storage and backup runbook exist, but restore must be tested in staging | High |
 | Real-time | Redis/WS failure modes need graceful fallback and monitoring | Medium |
 | Data model | Statuses and roles are mostly strings instead of Prisma enums | Medium |
 | Documentation | Docs now exist but must be maintained as decisions change | Medium |
@@ -80,5 +81,5 @@ Move from MVP/alpha to beta readiness:
 1. Expand automated tests beyond smoke scripts: auth, checkout UI, admin APIs, and provider edge cases.
 2. Add automated tests for license domain/IP edits, suspension, revocation, reissue, and audit events.
 3. Harden production security: tune CSP from staging reports, define webhook IP/provider policy, and document logging policy.
-4. Stabilize deployment: health checks, migrations, backups, monitoring, rollback procedure.
+4. Stabilize deployment: health checks, migrations, restore drill, monitoring, rollback procedure.
 5. Run an end-to-end paid order scenario in a staging environment.

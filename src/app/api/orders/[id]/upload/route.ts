@@ -5,6 +5,7 @@ import { writeFile, mkdir } from "fs/promises"
 import { existsSync } from "fs"
 import path from "path"
 import { randomUUID } from "crypto"
+import { messageUploadRoot } from "@/lib/storage-paths"
 import {
   checkRateLimit,
   getClientIp,
@@ -122,7 +123,7 @@ export async function POST(
     }
 
     // Создаём директорию для файлов заказа
-    const uploadDir = path.join(process.cwd(), "uploads", "messages", id)
+    const uploadDir = path.join(messageUploadRoot(), id)
     if (!existsSync(uploadDir)) {
       await mkdir(uploadDir, { recursive: true })
     }

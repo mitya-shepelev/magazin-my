@@ -36,8 +36,8 @@
 - Tune CSP after staging tests cover scripts, images, WebSocket, and external payment flows.
 - Add error tracking and structured logging.
 - Add uptime checks for Next.js, WS server, Redis, and PostgreSQL.
-- Document and test database backup/restore.
-- Document production storage for uploads and private installation packages.
+- Test database and file storage restore from the documented backup runbook.
+- Validate production storage volumes for uploads, private installation packages, and order message attachments.
 - Expand admin audit log coverage for sensitive changes beyond licenses.
 - Add operational runbook for incidents.
 
