@@ -22,7 +22,7 @@
 
 - Add automated tests for auth, cart/order creation, payment webhook, license activation, stage updates, and chat message APIs.
 - Add automated regression tests for idempotent payment webhook handling.
-- Add rate limiting for auth, payment, upload, license activation, and chat endpoints.
+- Expand rate limiting coverage and tune limits from real production traffic.
 - Add stricter file upload limits and MIME validation across all upload paths.
 - Expand environment validation with provider-specific checks as deployment requirements evolve.
 - Convert roles and statuses from free-form strings to Prisma enums where practical.

@@ -3,6 +3,12 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { createCheckoutPayment } from "@/lib/payments"
 import { env } from "@/lib/env"
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitKey,
+  rateLimitResponse,
+} from "@/lib/rate-limit"
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,6 +19,16 @@ export async function POST(request: NextRequest) {
         { error: "Для оформления заказа необходимо войти в аккаунт" },
         { status: 401 }
       )
+    }
+
+    const rateLimit = await checkRateLimit({
+      key: rateLimitKey("payment-create", session.user.id, getClientIp(request)),
+      limit: 10,
+      windowSeconds: 600,
+    })
+
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit, "Too many payment attempts")
     }
 
     const { items } = await request.json()

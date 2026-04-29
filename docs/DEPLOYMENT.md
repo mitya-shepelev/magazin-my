@@ -105,6 +105,8 @@ Minimum production secret guidance:
 - `PAYMENT_PROVIDER=mock` is only for local development and CI; production should use `rollypay`.
 - The WebSocket service must receive `WS_JWT_SECRET`, matching the Next.js app.
 
+Redis is also used for application rate limiting. If Redis is unavailable, rate limit checks fail open and log an error so checkout, license checks, and chat do not hard-fail during transient Redis issues.
+
 ### 4. Domain & SSL
 
 Configure routes in Dockhand:

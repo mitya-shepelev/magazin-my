@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server"
 import { createHmac, timingSafeEqual } from "crypto"
 import { markOrderCancelled, markOrderPaid } from "@/lib/order-payment"
 import { env } from "@/lib/env"
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitKey,
+  rateLimitResponse,
+} from "@/lib/rate-limit"
 
 interface RollyPayWebhookEvent {
   event_type?: string
@@ -42,6 +48,16 @@ function verifyRollyPaySignature(
 
 export async function POST(request: NextRequest) {
   try {
+    const rateLimit = await checkRateLimit({
+      key: rateLimitKey("payment-webhook", getClientIp(request)),
+      limit: 120,
+      windowSeconds: 60,
+    })
+
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit, "Too many webhook requests")
+    }
+
     const rawBody = await request.text()
     const signature = request.headers.get("x-signature")
     const timestamp = request.headers.get("x-timestamp")

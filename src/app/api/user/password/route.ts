@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { hashPassword, verifyPassword } from "@/lib/password"
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitKey,
+  rateLimitResponse,
+} from "@/lib/rate-limit"
 
 // Валидация пароля: минимум 8 символов, заглавная, строчная буква и цифра
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
@@ -12,6 +18,16 @@ export async function PUT(request: NextRequest) {
 
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const rateLimit = await checkRateLimit({
+      key: rateLimitKey("password-change", session.user.id, getClientIp(request)),
+      limit: 5,
+      windowSeconds: 3600,
+    })
+
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit, "Too many password change attempts")
     }
 
     const { currentPassword, newPassword } = await request.json()

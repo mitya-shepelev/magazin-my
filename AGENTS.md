@@ -216,6 +216,7 @@ Required for development:
 - `NEXT_PUBLIC_WS_URL` - WebSocket server URL (e.g., `ws://localhost:3001`)
 
 Production startup validates required environment variables. Do not bypass this validation with placeholder secrets; fix Dockhand/GitHub environment values instead.
+Redis is used for cache, realtime pub/sub, and API rate limiting.
 
 ## Local Development Setup
 
@@ -293,6 +294,6 @@ For payment, license, auth, WebSocket, or stage-flow changes, include a manual s
 
 1. Expand smoke coverage into focused tests for auth, checkout, webhook signatures, stages, and chat APIs.
 2. Keep `npm run lint`, `npm run build`, and `npm run smoke:critical` green on `dev`.
-3. Harden production security: rate limiting, CSP, webhook idempotency, stricter webhook verification.
+3. Harden production security: CSP, webhook idempotency, stricter webhook verification.
 4. Define production file storage, backups, monitoring, and rollback.
 5. Validate one complete paid-order flow in staging.
