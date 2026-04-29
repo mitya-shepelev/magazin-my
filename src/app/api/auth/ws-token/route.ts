@@ -2,8 +2,9 @@ import { NextResponse } from "next/server"
 import jwt from "jsonwebtoken"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { env } from "@/lib/env"
 
-const JWT_SECRET = process.env.WS_JWT_SECRET || "development-secret"
+const JWT_SECRET = env.WS_JWT_SECRET
 const TOKEN_EXPIRY = 300 // 5 minutes
 
 export async function POST() {

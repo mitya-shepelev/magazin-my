@@ -1,4 +1,5 @@
 import Redis from 'ioredis'
+import { env } from '@/lib/env'
 
 const globalForRedis = globalThis as unknown as {
   redis: Redis | undefined
@@ -6,9 +7,9 @@ const globalForRedis = globalThis as unknown as {
 
 function createRedisClient() {
   return new Redis({
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379'),
-    password: process.env.REDIS_PASSWORD,
+    host: env.REDIS_HOST,
+    port: env.REDIS_PORT,
+    password: env.REDIS_PASSWORD,
     maxRetriesPerRequest: 3,
     retryStrategy(times) {
       const delay = Math.min(times * 50, 2000)

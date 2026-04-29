@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { createCheckoutPayment } from "@/lib/payments"
+import { env } from "@/lib/env"
 
 export async function POST(request: NextRequest) {
   try {
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    const appUrl = env.NEXT_PUBLIC_APP_URL
     const successUrl = `${appUrl}/cabinet/orders/${order.id}?payment=success`
     const failUrl = `${appUrl}/cart?payment=failed`
 
