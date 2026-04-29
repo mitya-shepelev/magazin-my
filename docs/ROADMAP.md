@@ -33,7 +33,7 @@
 
 **Goal:** Make the platform safe to operate publicly.
 
-- Configure CSP after testing scripts, images, and external payment flows.
+- Tune CSP after staging tests cover scripts, images, WebSocket, and external payment flows.
 - Add error tracking and structured logging.
 - Add uptime checks for Next.js, WS server, Redis, and PostgreSQL.
 - Document and test database backup/restore.

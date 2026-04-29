@@ -295,6 +295,6 @@ For payment, license, auth, WebSocket, or stage-flow changes, include a manual s
 
 1. Expand smoke coverage into focused tests for auth, checkout, and remaining admin APIs.
 2. Keep `npm run lint`, `npm run build`, `npm run smoke:critical`, and `npm run smoke:api-security` green on `dev`.
-3. Harden production security: CSP, webhook idempotency, stricter webhook verification.
+3. Harden production security: staging-tune CSP, webhook idempotency, stricter webhook verification.
 4. Define production file storage, backups, monitoring, and rollback.
 5. Validate one complete paid-order flow in staging.
