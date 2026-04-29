@@ -14,7 +14,7 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 
 **Why not beta yet:**
 
-- There is no automated test suite.
+- Automated coverage is limited to the critical smoke flow.
 - Production readiness items remain open: rate limiting, CSP, secrets validation, storage strategy, observability, backup/restore process.
 - Documentation was incomplete before this update: no PRD, no ADR index, no roadmap.
 - Some data fields use string statuses instead of typed enums, which increases regression risk.
@@ -34,6 +34,7 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 - License audit events for activation checks, rejections, binding changes, status changes, and key reissues.
 - Client download API disabled for customer product delivery.
 - Installation stage templates copied into order stages after payment.
+- Critical smoke script for paid order, license, activation, audit, and installation-stage flow.
 - Customer/admin order chat with file upload support.
 - Socket.io real-time layer bridged through Redis Pub/Sub.
 - Redis caching helpers and cache invalidation helpers.
@@ -54,7 +55,7 @@ Result on 2026-04-28: passed after lint cleanup.
 
 | Area | Risk | Priority |
 | --- | --- | --- |
-| Release quality | Build/lint pass, but there is still no automated test suite | High |
+| Release quality | Build/lint pass, but automated coverage is still limited to critical smoke checks | High |
 | Security | No rate limiting; CSP not configured; webhook IP logic should be revisited before production | High |
 | Payments | Webhook handling should be covered by automated tests | High |
 | Licenses | License activation/revocation and audit events need automated tests | High |
@@ -67,7 +68,7 @@ Result on 2026-04-28: passed after lint cleanup.
 
 Move from MVP/alpha to beta readiness:
 
-1. Add a smoke test checklist and automated tests for auth, checkout, webhook, licenses, order stages, and chat APIs.
+1. Expand automated tests beyond the critical smoke flow: auth, checkout UI, webhook HTTP signatures, order stages, and chat APIs.
 2. Add automated tests for license domain/IP edits, suspension, revocation, reissue, and audit events.
 3. Harden production security: rate limiting, CSP, secrets validation, stricter webhook verification, logging policy.
 4. Stabilize deployment: health checks, migrations, backups, monitoring, rollback procedure.

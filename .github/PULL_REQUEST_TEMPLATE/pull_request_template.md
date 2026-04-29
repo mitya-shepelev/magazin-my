@@ -24,6 +24,7 @@
 - [ ] No direct changes are being pushed to `dev`
 - [ ] `npm run lint` passes, or failures are documented as pre-existing
 - [ ] `npm run build` passes, or failures are documented as pre-existing
+- [ ] `npm run smoke:critical` passes, or is documented as not relevant
 - [ ] WebSocket server builds if `ws-server/` changed
 - [ ] Prisma migration is included if the schema changed
 - [ ] Cache invalidation is updated if cached data changed

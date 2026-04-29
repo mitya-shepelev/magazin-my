@@ -80,6 +80,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Critical smoke test
+        run: npm run smoke:critical
+
       - name: Build
         run: npm run build
 
