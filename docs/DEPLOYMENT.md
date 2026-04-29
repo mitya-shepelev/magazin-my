@@ -96,6 +96,15 @@ The stack includes:
 
 Use the variable list above as the Dockhand environment reference. Never commit real production secrets or env files.
 
+Production runtime validates required environment variables on startup. The app fails fast when required secrets are missing, placeholder values are used, production payment is set to `mock`, URLs are malformed, or required RollyPay secrets are absent.
+
+Minimum production secret guidance:
+
+- `NEXTAUTH_SECRET`, `WS_JWT_SECRET`, and `ROLLYPAY_WEBHOOK_SECRET` should be at least 32 characters.
+- Do not use placeholder/example values from `.env.example`.
+- `PAYMENT_PROVIDER=mock` is only for local development and CI; production should use `rollypay`.
+- The WebSocket service must receive `WS_JWT_SECRET`, matching the Next.js app.
+
 ### 4. Domain & SSL
 
 Configure routes in Dockhand:

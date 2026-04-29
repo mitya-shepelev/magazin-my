@@ -24,7 +24,7 @@
 - Add automated regression tests for idempotent payment webhook handling.
 - Add rate limiting for auth, payment, upload, license activation, and chat endpoints.
 - Add stricter file upload limits and MIME validation across all upload paths.
-- Add environment validation at startup.
+- Expand environment validation with provider-specific checks as deployment requirements evolve.
 - Convert roles and statuses from free-form strings to Prisma enums where practical.
 - Add staging deployment checklist and rollback procedure.
 

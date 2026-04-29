@@ -71,7 +71,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
-      JWT_SECRET: ${WS_JWT_SECRET}
+      WS_JWT_SECRET: ${WS_JWT_SECRET}
       CORS_ORIGIN: ${NEXT_PUBLIC_APP_URL}
     depends_on:
       redis:

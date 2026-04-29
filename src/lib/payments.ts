@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto"
+import { env } from "@/lib/env"
 
 export type PaymentProvider = "mock" | "rollypay"
 
@@ -27,13 +28,7 @@ interface RollyPayPaymentResponse {
 }
 
 export function getPaymentProvider(): PaymentProvider {
-  const provider = process.env.PAYMENT_PROVIDER
-
-  if (provider === "rollypay" || provider === "mock") {
-    return provider
-  }
-
-  return process.env.NODE_ENV === "production" ? "rollypay" : "mock"
+  return env.PAYMENT_PROVIDER
 }
 
 export async function createCheckoutPayment(
@@ -49,7 +44,7 @@ export async function createCheckoutPayment(
 }
 
 function createMockPayment(params: CreateCheckoutPaymentParams): CheckoutPayment {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  const appUrl = env.NEXT_PUBLIC_APP_URL
   const paymentUrl = new URL("/api/payment/mock/success", appUrl)
   paymentUrl.searchParams.set("orderId", params.orderId)
 
@@ -64,9 +59,9 @@ function createMockPayment(params: CreateCheckoutPaymentParams): CheckoutPayment
 async function createRollyPayPayment(
   params: CreateCheckoutPaymentParams
 ): Promise<CheckoutPayment> {
-  const apiKey = process.env.ROLLYPAY_API_KEY
-  const apiUrl = process.env.ROLLYPAY_API_URL || "https://rollypay.io"
-  const currency = process.env.PAYMENT_CURRENCY || "RUB"
+  const apiKey = env.ROLLYPAY_API_KEY
+  const apiUrl = env.ROLLYPAY_API_URL
+  const currency = env.PAYMENT_CURRENCY
 
   if (!apiKey) {
     throw new Error("RollyPay API key is not configured")

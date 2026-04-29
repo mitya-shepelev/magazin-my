@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createHmac, timingSafeEqual } from "crypto"
 import { markOrderCancelled, markOrderPaid } from "@/lib/order-payment"
+import { env } from "@/lib/env"
 
 interface RollyPayWebhookEvent {
   event_type?: string
@@ -16,7 +17,7 @@ function verifyRollyPaySignature(
   timestamp: string | null,
   signature: string | null
 ): boolean {
-  const signingSecret = process.env.ROLLYPAY_WEBHOOK_SECRET
+  const signingSecret = env.ROLLYPAY_WEBHOOK_SECRET
 
   if (!signingSecret) {
     return process.env.NODE_ENV !== "production"

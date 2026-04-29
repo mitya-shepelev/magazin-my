@@ -15,7 +15,7 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 **Why not beta yet:**
 
 - Automated coverage is limited to the critical smoke flow.
-- Production readiness items remain open: rate limiting, CSP, secrets validation, storage strategy, observability, backup/restore process.
+- Production readiness items remain open: rate limiting, CSP, storage strategy, observability, backup/restore process.
 - Documentation was incomplete before this update: no PRD, no ADR index, no roadmap.
 - Some data fields use string statuses instead of typed enums, which increases regression risk.
 
@@ -28,6 +28,7 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 - Admin dashboard for products, categories, orders, licenses, settings, cache, SEO pages.
 - Prisma/PostgreSQL domain model for users, products, orders, SEO, reviews, stages, messages.
 - RollyPay payment creation and webhook handling.
+- Runtime environment validation for required production URLs and secrets.
 - License keys generated for paid order items.
 - License activation endpoint for domain/IP binding.
 - Admin license tools for domain/IP edits, binding reset, suspension, and key reissue.
@@ -70,6 +71,6 @@ Move from MVP/alpha to beta readiness:
 
 1. Expand automated tests beyond the critical smoke flow: auth, checkout UI, webhook HTTP signatures, order stages, and chat APIs.
 2. Add automated tests for license domain/IP edits, suspension, revocation, reissue, and audit events.
-3. Harden production security: rate limiting, CSP, secrets validation, stricter webhook verification, logging policy.
+3. Harden production security: rate limiting, CSP, stricter webhook verification, logging policy.
 4. Stabilize deployment: health checks, migrations, backups, monitoring, rollback procedure.
 5. Run an end-to-end paid order scenario in a staging environment.
