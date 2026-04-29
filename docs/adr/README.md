@@ -14,6 +14,7 @@ This directory stores architecture decisions that should remain understandable a
 | [ADR-0006](0006-github-ci-dockhand-deployment.md) | Accepted | Use GitHub CI and Dockhand production deployment |
 | [ADR-0007](0007-rollypay-payment-provider.md) | Accepted | Use RollyPay for production payments with local mock checkout |
 | [ADR-0008](0008-license-based-installation-delivery.md) | Accepted | Use license-based delivery with guided installation |
+| [ADR-0009](0009-license-audit-log.md) | Accepted | Add license audit log for activation and admin actions |
 
 ## ADR Template
 

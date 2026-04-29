@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { normalizeDomain } from "@/lib/licenses"
+import { normalizeDomain, recordLicenseEvent } from "@/lib/licenses"
 
 interface ActivateLicenseBody {
   licenseKey?: string
@@ -14,6 +14,29 @@ function getRequestIp(request: NextRequest) {
   const forwardedFor = request.headers.get("x-forwarded-for")
   const realIp = request.headers.get("x-real-ip")
   return forwardedFor?.split(",")[0]?.trim() || realIp || null
+}
+
+async function auditLicenseActivation(params: {
+  licenseId: string
+  eventType: "ACTIVATION_SUCCESS" | "ACTIVATION_REJECTED"
+  message: string
+  domain?: string | null
+  serverIp?: string | null
+  metadata?: Record<string, unknown>
+}) {
+  try {
+    await recordLicenseEvent({
+      licenseId: params.licenseId,
+      eventType: params.eventType,
+      actorType: "LICENSE_API",
+      message: params.message,
+      domain: params.domain,
+      serverIp: params.serverIp,
+      metadata: params.metadata,
+    })
+  } catch (error) {
+    console.error("License audit event error:", error)
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -52,6 +75,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (license.status !== "ACTIVE") {
+      await auditLicenseActivation({
+        licenseId: license.id,
+        eventType: "ACTIVATION_REJECTED",
+        message: "License activation rejected because license is not active",
+        domain,
+        serverIp,
+        metadata: {
+          status: license.status,
+        },
+      })
+
       return NextResponse.json(
         { valid: false, status: license.status, error: "License is not active" },
         { status: 403 }
@@ -59,6 +93,18 @@ export async function POST(request: NextRequest) {
     }
 
     if (body.productId && body.productId !== license.productId) {
+      await auditLicenseActivation({
+        licenseId: license.id,
+        eventType: "ACTIVATION_REJECTED",
+        message: "License activation rejected because product does not match",
+        domain,
+        serverIp,
+        metadata: {
+          requestedProductId: body.productId,
+          licenseProductId: license.productId,
+        },
+      })
+
       return NextResponse.json(
         { valid: false, error: "License does not belong to this product" },
         { status: 403 }
@@ -66,6 +112,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (license.domain && normalizeDomain(license.domain) !== domain) {
+      await auditLicenseActivation({
+        licenseId: license.id,
+        eventType: "ACTIVATION_REJECTED",
+        message: "License activation rejected because domain does not match",
+        domain,
+        serverIp,
+        metadata: {
+          boundDomain: license.domain,
+        },
+      })
+
       return NextResponse.json(
         { valid: false, error: "License is bound to another domain" },
         { status: 403 }
@@ -73,6 +130,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (license.serverIp && serverIp && license.serverIp !== serverIp) {
+      await auditLicenseActivation({
+        licenseId: license.id,
+        eventType: "ACTIVATION_REJECTED",
+        message: "License activation rejected because server IP does not match",
+        domain,
+        serverIp,
+        metadata: {
+          boundServerIp: license.serverIp,
+        },
+      })
+
       return NextResponse.json(
         { valid: false, error: "License is bound to another server IP" },
         { status: 403 }
@@ -100,6 +168,21 @@ export async function POST(request: NextRequest) {
             version: true,
           },
         },
+      },
+    })
+
+    await auditLicenseActivation({
+      licenseId: updatedLicense.id,
+      eventType: "ACTIVATION_SUCCESS",
+      message: isFirstActivation
+        ? "License activated and bound to domain/IP"
+        : "License activation check passed",
+      domain: updatedLicense.domain,
+      serverIp: updatedLicense.serverIp,
+      metadata: {
+        requestedVersion: body.version || null,
+        productVersion: updatedLicense.product.version,
+        firstActivation: isFirstActivation,
       },
     })
 

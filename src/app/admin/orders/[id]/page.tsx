@@ -18,6 +18,7 @@ import {
   Calendar,
   CreditCard,
   Globe,
+  History,
   KeyRound,
   Package,
   RotateCcw,
@@ -70,6 +71,10 @@ async function getOrder(id: string) {
           product: {
             select: { name: true },
           },
+          events: {
+            orderBy: { createdAt: "desc" },
+            take: 3,
+          },
         },
       },
     },
@@ -94,6 +99,19 @@ const licenseStatusConfig = {
   ACTIVE: { label: "Активна", className: "bg-green-100 text-green-700" },
   SUSPENDED: { label: "Приостановлена", className: "bg-yellow-100 text-yellow-700" },
   REVOKED: { label: "Отозвана", className: "bg-red-100 text-red-700" },
+}
+
+const licenseEventConfig = {
+  ACTIVATION_SUCCESS: "Активация прошла",
+  ACTIVATION_REJECTED: "Активация отклонена",
+  BINDING_UPDATED: "Привязка изменена",
+  BINDING_RESET: "Привязка сброшена",
+  STATUS_CHANGED: "Статус изменён",
+  KEY_REISSUED: "Ключ перевыпущен",
+}
+
+function licenseEventLabel(eventType: string) {
+  return licenseEventConfig[eventType as keyof typeof licenseEventConfig] || eventType
 }
 
 function formatDate(value: Date | null) {
@@ -291,6 +309,27 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                       <p className="text-xs text-muted-foreground">Последняя проверка</p>
                       <p>{formatDate(license.lastCheckAt)}</p>
                     </div>
+                  </div>
+
+                  <div className="rounded-md bg-muted/40 p-3">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Последние события</p>
+                    {license.events.length > 0 ? (
+                      <div className="space-y-2">
+                        {license.events.map((event) => (
+                          <div key={event.id} className="text-sm">
+                            <div className="flex items-center gap-2">
+                              <History className="h-3 w-3 text-muted-foreground" />
+                              <span>{licenseEventLabel(event.eventType)}</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDate(event.createdAt)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Событий пока нет</p>
+                    )}
                   </div>
 
                   <form action={updateLicenseBinding} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2">
