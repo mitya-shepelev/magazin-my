@@ -23,15 +23,18 @@ Primary files:
 - `deploy/dockhand/compose.prod.yml`
 - `docs/DEPLOYMENT.md`
 - `docs/BACKUP_RESTORE.md`
+- `docs/STAGING_AND_ROLLBACK.md`
 
 Normal release path:
 
 1. Develop locally.
 2. Merge feature PRs into `dev`.
-3. Validate `dev`.
+3. Validate `dev` in staging.
 4. Open a release PR from `dev` to `main`.
 5. Merge release PR after checks/review.
 6. Deploy `main` in Dockhand.
+
+Staging and rollback procedures live in `docs/STAGING_AND_ROLLBACK.md`. Use that runbook before beta/public launch and before production releases that touch payments, licenses, installation stages, uploads, auth, WebSocket behavior, database schema, or deployment configuration.
 
 ## Architecture Overview
 
@@ -129,6 +132,7 @@ docker compose -f deploy/dockhand/compose.prod.yml --profile ops run --rm storag
 ```
 
 See `docs/BACKUP_RESTORE.md` for restore commands, schedules, and validation steps.
+Use `docs/STAGING_AND_ROLLBACK.md` for the staging restore drill and rollback decision guide.
 
 ### Content Security Policy
 
@@ -220,7 +224,7 @@ The local compose file is `docker-compose.local.yml`. It starts PostgreSQL and R
 ### Recommended Tools
 
 - **Uptime Kuma**: Health check monitoring
-- **Dokploy Logs**: View application logs
+- **Dockhand Logs**: View application logs
 - **Redis Commander**: Redis data inspection
 
 ### Key Metrics

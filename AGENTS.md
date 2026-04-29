@@ -17,6 +17,7 @@ Current maturity: MVP/alpha. The core product flows exist, but the project still
 - `docs/adr/*.md` - Architecture decisions for the main technical choices.
 - `docs/DEPLOYMENT.md` - Deployment guide.
 - `docs/BACKUP_RESTORE.md` - Production backup and restore runbook.
+- `docs/STAGING_AND_ROLLBACK.md` - Staging validation and rollback runbook.
 - `docs/audits/` - Security and technical audits.
 - `docs/plans/` - Historical implementation plans.
 - `.github/workflows/ci.yml` - GitHub Actions CI.
@@ -43,6 +44,7 @@ npm run db:seed          # Create admin user
 npm run build
 npm run lint
 npm run smoke:critical
+npm run smoke:api-security
 ```
 
 ## Git Workflow
@@ -265,6 +267,8 @@ Primary production files:
 
 - `deploy/dockhand/compose.prod.yml`
 - `docs/DEPLOYMENT.md`
+- `docs/BACKUP_RESTORE.md`
+- `docs/STAGING_AND_ROLLBACK.md`
 
 Production rules:
 
@@ -275,6 +279,8 @@ Production rules:
 - Run Prisma migrations as part of the deploy flow before serving new app code.
 - Keep PostgreSQL, Redis, uploads, and private installation packages on persistent volumes or managed services with backups.
 - Keep order message attachments on a persistent private volume with backups.
+- Validate release candidates in a staging Dockhand stack before promoting `dev` to `main`.
+- Follow `docs/STAGING_AND_ROLLBACK.md` for staging validation, production release, and rollback decisions.
 
 ## Before Shipping Changes
 
@@ -298,5 +304,5 @@ For payment, license, auth, WebSocket, or stage-flow changes, include a manual s
 1. Expand smoke coverage into focused tests for auth, checkout, and remaining admin APIs.
 2. Keep `npm run lint`, `npm run build`, `npm run smoke:critical`, and `npm run smoke:api-security` green on `dev`.
 3. Harden production security: staging-tune CSP, stricter webhook verification, and provider IP policy.
-4. Run a staging restore drill and define monitoring/rollback.
+4. Run a staging restore/rollback drill and define monitoring.
 5. Validate one complete paid-order flow in staging.

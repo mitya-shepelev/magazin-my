@@ -1,6 +1,6 @@
 # Roadmap
 
-**Updated:** 2026-04-29
+**Updated:** 2026-04-30
 **Current stage:** MVP/alpha
 
 ## Phase 0: Stabilize The Current MVP
@@ -27,7 +27,7 @@
 - Add stricter file upload limits and MIME validation across all upload paths.
 - Expand environment validation with provider-specific checks as deployment requirements evolve.
 - Convert roles and statuses from free-form strings to Prisma enums where practical.
-- Add staging deployment checklist and rollback procedure.
+- Execute the documented staging deployment checklist and rollback drill.
 
 ## Phase 2: Production Hardening
 
@@ -37,6 +37,7 @@
 - Add error tracking and structured logging.
 - Add uptime checks for Next.js, WS server, Redis, and PostgreSQL.
 - Test database and file storage restore from the documented backup runbook.
+- Test app rollback and data restore rollback from the documented staging/rollback runbook.
 - Validate production storage volumes for uploads, private installation packages, and order message attachments.
 - Expand admin audit log coverage for sensitive changes beyond licenses.
 - Add operational runbook for incidents.
