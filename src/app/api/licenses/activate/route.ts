@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { normalizeDomain, recordLicenseEvent } from "@/lib/licenses"
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitKey,
+  rateLimitResponse,
+} from "@/lib/rate-limit"
 
 interface ActivateLicenseBody {
   licenseKey?: string
@@ -11,9 +17,8 @@ interface ActivateLicenseBody {
 }
 
 function getRequestIp(request: NextRequest) {
-  const forwardedFor = request.headers.get("x-forwarded-for")
-  const realIp = request.headers.get("x-real-ip")
-  return forwardedFor?.split(",")[0]?.trim() || realIp || null
+  const ip = getClientIp(request)
+  return ip === "unknown" ? null : ip
 }
 
 async function auditLicenseActivation(params: {
@@ -45,6 +50,27 @@ export async function POST(request: NextRequest) {
     const licenseKey = body.licenseKey?.trim()
     const domain = body.domain ? normalizeDomain(body.domain) : ""
     const serverIp = body.serverIp?.trim() || getRequestIp(request)
+    const clientIp = getClientIp(request)
+
+    const ipLimit = await checkRateLimit({
+      key: rateLimitKey("license-activate-ip", clientIp),
+      limit: 60,
+      windowSeconds: 600,
+    })
+
+    if (!ipLimit.allowed) {
+      return rateLimitResponse(ipLimit, "Too many license activation attempts")
+    }
+
+    const keyLimit = await checkRateLimit({
+      key: rateLimitKey("license-activate-key", clientIp, licenseKey),
+      limit: 20,
+      windowSeconds: 600,
+    })
+
+    if (!keyLimit.allowed) {
+      return rateLimitResponse(keyLimit, "Too many license activation attempts for this key")
+    }
 
     if (!licenseKey || !domain) {
       return NextResponse.json(

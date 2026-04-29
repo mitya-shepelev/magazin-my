@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server"
 import { db } from "../src/lib/db"
+import { redis } from "../src/lib/redis"
 import { markOrderPaid } from "../src/lib/order-payment"
 import { POST as activateLicense } from "../src/app/api/licenses/activate/route"
 
@@ -58,6 +59,11 @@ async function cleanup() {
   if (context.userId) {
     await db.user.deleteMany({ where: { id: context.userId } })
   }
+}
+
+async function disconnect() {
+  await db.$disconnect()
+  await redis.quit()
 }
 
 async function main() {
@@ -238,13 +244,13 @@ async function main() {
 main()
   .then(async () => {
     await cleanup()
-    await db.$disconnect()
+    await disconnect()
     console.log("Critical flow smoke passed")
   })
   .catch(async (error) => {
     console.error("Critical flow smoke failed")
     console.error(error)
     await cleanup()
-    await db.$disconnect()
+    await disconnect()
     process.exit(1)
   })
