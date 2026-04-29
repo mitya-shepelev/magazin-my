@@ -107,6 +107,17 @@ Minimum production secret guidance:
 
 Redis is also used for application rate limiting. If Redis is unavailable, rate limit checks fail open and log an error so checkout, license checks, and chat do not hard-fail during transient Redis issues.
 
+### Content Security Policy
+
+The Next.js app sends a baseline Content Security Policy from `next.config.ts`.
+It derives allowed application, WebSocket, and RollyPay origins from:
+
+- `NEXT_PUBLIC_APP_URL`
+- `NEXT_PUBLIC_WS_URL`
+- `ROLLYPAY_API_URL`
+
+Before production launch, validate the policy in staging with the real app domain, WebSocket domain, product images, RollyPay checkout redirect, and admin/customer order chat. If new external origins are introduced, update the CSP in Git before deploying.
+
 ### 4. Domain & SSL
 
 Configure routes in Dockhand:

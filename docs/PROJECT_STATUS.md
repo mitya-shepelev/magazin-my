@@ -15,7 +15,7 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 **Why not beta yet:**
 
 - Automated coverage is still smoke-level and should be expanded into a broader test suite.
-- Production readiness items remain open: CSP, storage strategy, observability, backup/restore process.
+- Production readiness items remain open: storage strategy, observability, backup/restore process, and staging validation of security headers.
 - Documentation was incomplete before this update: no PRD, no ADR index, no roadmap.
 - Some data fields use string statuses instead of typed enums, which increases regression risk.
 
@@ -29,6 +29,7 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 - Prisma/PostgreSQL domain model for users, products, orders, SEO, reviews, stages, messages.
 - RollyPay payment creation and webhook handling.
 - Runtime environment validation for required production URLs and secrets.
+- Baseline Content Security Policy and security headers configured in Next.js.
 - Redis-backed rate limiting for license activation, payment creation/webhook, chat, uploads, and password changes.
 - RollyPay webhook signature freshness checks.
 - License keys generated for paid order items.
@@ -63,7 +64,7 @@ Result on 2026-04-29: passed locally after API security smoke coverage was added
 | Area | Risk | Priority |
 | --- | --- | --- |
 | Release quality | Build/lint pass, but automated coverage is still smoke-level | High |
-| Security | CSP not configured; webhook IP allowlisting/replay policy should be revisited before production | High |
+| Security | Baseline CSP exists, but staging should validate real payment, image, and WebSocket origins; webhook IP allowlisting/replay policy should be revisited before production | High |
 | Payments | Webhook signature checks have smoke coverage, but provider edge cases still need broader tests | Medium |
 | Licenses | License activation/revocation and audit events need automated tests | High |
 | Files | Admin installation package storage paths need production strategy and backup policy | High |
@@ -77,6 +78,6 @@ Move from MVP/alpha to beta readiness:
 
 1. Expand automated tests beyond smoke scripts: auth, checkout UI, admin APIs, and provider edge cases.
 2. Add automated tests for license domain/IP edits, suspension, revocation, reissue, and audit events.
-3. Harden production security: CSP, webhook IP/provider policy, logging policy.
+3. Harden production security: tune CSP from staging reports, define webhook IP/provider policy, and document logging policy.
 4. Stabilize deployment: health checks, migrations, backups, monitoring, rollback procedure.
 5. Run an end-to-end paid order scenario in a staging environment.
