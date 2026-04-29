@@ -125,6 +125,29 @@ model Order {
   updatedAt     DateTime    @updatedAt
 }
 
+// ==================== ПЛАТЕЖНЫЕ WEBHOOK СОБЫТИЯ ====================
+
+model PaymentWebhookEvent {
+  id               String    @id @default(cuid())
+  provider         String
+  eventKey         String    @unique
+  eventType        String?
+  status           String?
+  orderId          String?
+  paymentId        String?
+  payloadHash      String
+  processingStatus String    @default("RECEIVED") // RECEIVED, PROCESSED, IGNORED, FAILED
+  error            String?   @db.Text
+  receivedAt       DateTime  @default(now())
+  processedAt      DateTime?
+
+  @@index([provider])
+  @@index([orderId])
+  @@index([paymentId])
+  @@index([processingStatus])
+  @@index([receivedAt])
+}
+
 model OrderItem {
   id          String    @id @default(cuid())
   orderId     String

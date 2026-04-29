@@ -32,6 +32,7 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 - Baseline Content Security Policy and security headers configured in Next.js.
 - Redis-backed rate limiting for license activation, payment creation/webhook, chat, uploads, and password changes.
 - RollyPay webhook signature freshness checks.
+- Payment webhook event storage and idempotency guard for duplicate provider delivery.
 - License keys generated for paid order items.
 - License activation endpoint for domain/IP binding.
 - Admin license tools for domain/IP edits, binding reset, suspension, and key reissue.
@@ -39,7 +40,7 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 - Client download API disabled for customer product delivery.
 - Installation stage templates copied into order stages after payment.
 - Critical smoke script for paid order, license, activation, audit, and installation-stage flow.
-- API security smoke script for webhook signatures, chat ownership, upload ownership, and stage permission/order scoping.
+- API security smoke script for webhook signatures, webhook idempotency, chat ownership, upload ownership, and stage permission/order scoping.
 - Customer/admin order chat with file upload support.
 - Socket.io real-time layer bridged through Redis Pub/Sub.
 - Redis caching helpers and cache invalidation helpers.
@@ -65,7 +66,7 @@ Result on 2026-04-29: passed locally after API security smoke coverage was added
 | --- | --- | --- |
 | Release quality | Build/lint pass, but automated coverage is still smoke-level | High |
 | Security | Baseline CSP exists, but staging should validate real payment, image, and WebSocket origins; webhook IP allowlisting/replay policy should be revisited before production | High |
-| Payments | Webhook signature checks have smoke coverage, but provider edge cases still need broader tests | Medium |
+| Payments | Webhook signature and duplicate-delivery behavior have smoke coverage, but provider edge cases still need broader tests | Medium |
 | Licenses | License activation/revocation and audit events need automated tests | High |
 | Files | Admin installation package storage paths need production strategy and backup policy | High |
 | Real-time | Redis/WS failure modes need graceful fallback and monitoring | Medium |

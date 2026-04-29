@@ -35,3 +35,20 @@ Run this before merging changes that touch:
 - Prisma schema/migrations related to orders, licenses, or products.
 
 If this smoke test fails, do not treat the branch as ready for `dev`.
+
+## API Security
+
+Run locally:
+
+```bash
+npm run smoke:api-security
+```
+
+It verifies:
+
+- valid webhook signatures are accepted;
+- invalid and stale webhook signatures are rejected;
+- duplicate paid webhook delivery is idempotent;
+- order chat is scoped to the order owner/admin;
+- order file upload is scoped to the order owner/admin;
+- stage confirmation and admin stage status APIs enforce permissions and order scoping.
