@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { readFile, readdir } from "fs/promises"
 import { existsSync } from "fs"
 import path from "path"
+import { messageUploadRoot } from "@/lib/storage-paths"
 
 // GET /api/files/[fileId] - скачать файл
 export async function GET(
@@ -20,7 +21,7 @@ export async function GET(
     const isAdmin = session.user.role === "ADMIN"
 
     // Ищем файл в директории uploads/messages
-    const uploadsDir = path.join(process.cwd(), "uploads", "messages")
+    const uploadsDir = messageUploadRoot()
 
     if (!existsSync(uploadsDir)) {
       return NextResponse.json({ error: "File not found" }, { status: 404 })

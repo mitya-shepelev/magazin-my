@@ -28,9 +28,11 @@ services:
       ROLLYPAY_WEBHOOK_SECRET: ${ROLLYPAY_WEBHOOK_SECRET}
       UPLOAD_DIR: /app/public/uploads
       DOWNLOAD_DIR: /app/private/downloads
+      MESSAGE_UPLOAD_DIR: /app/uploads/messages
     volumes:
       - uploads:/app/public/uploads
       - downloads:/app/private/downloads
+      - message-uploads:/app/uploads/messages
     depends_on:
       postgres:
         condition: service_healthy
@@ -112,6 +114,42 @@ services:
     networks:
       - magazin
 
+  postgres-backup:
+    image: postgres:16-alpine
+    restart: "no"
+    profiles:
+      - ops
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+    command: >
+      sh -c 'mkdir -p /backups/postgres &&
+      pg_dump -h postgres -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -Fc
+      -f "/backups/postgres/$${POSTGRES_DB}_$$(date +%Y%m%d_%H%M%S).dump"'
+    volumes:
+      - backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - magazin
+
+  storage-backup:
+    image: alpine:3.20
+    restart: "no"
+    profiles:
+      - ops
+    command: >
+      sh -c 'mkdir -p /backups/storage &&
+      tar -czf "/backups/storage/storage_$$(date +%Y%m%d_%H%M%S).tar.gz"
+      -C /data uploads downloads message-uploads'
+    volumes:
+      - uploads:/data/uploads:ro
+      - downloads:/data/downloads:ro
+      - message-uploads:/data/message-uploads:ro
+      - backups:/backups
+
 networks:
   magazin:
     driver: bridge
@@ -121,3 +159,5 @@ volumes:
   redis-data:
   uploads:
   downloads:
+  message-uploads:
+  backups:

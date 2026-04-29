@@ -22,6 +22,7 @@ Primary files:
 
 - `deploy/dockhand/compose.prod.yml`
 - `docs/DEPLOYMENT.md`
+- `docs/BACKUP_RESTORE.md`
 
 Normal release path:
 
@@ -73,6 +74,7 @@ The stack includes:
 - PostgreSQL
 - Redis
 - persistent volumes for database, Redis, uploads, and private installation packages
+- one-off backup profiles for PostgreSQL and file storage
 
 ### 3. Configure Environment Variables
 
@@ -93,6 +95,9 @@ The stack includes:
 | `ROLLYPAY_WEBHOOK_SECRET` | RollyPay webhook signing secret |
 | `NEXT_PUBLIC_APP_URL` | Production app URL |
 | `NEXT_PUBLIC_APP_NAME` | Public app name |
+| `UPLOAD_DIR` | Public upload root; defaults to `/app/public/uploads` in production |
+| `DOWNLOAD_DIR` | Private installation package root; defaults to `/app/private/downloads` in production |
+| `MESSAGE_UPLOAD_DIR` | Private order message attachment root; defaults to `/app/uploads/messages` in production |
 
 Use the variable list above as the Dockhand environment reference. Never commit real production secrets or env files.
 
@@ -106,6 +111,24 @@ Minimum production secret guidance:
 - The WebSocket service must receive `WS_JWT_SECRET`, matching the Next.js app.
 
 Redis is also used for application rate limiting. If Redis is unavailable, rate limit checks fail open and log an error so checkout, license checks, and chat do not hard-fail during transient Redis issues.
+
+### Persistent Storage And Backups
+
+The production stack mounts separate volumes for PostgreSQL, Redis, public uploads, private installation packages, private order message uploads, and generated backup artifacts.
+
+Run logical PostgreSQL backups with:
+
+```bash
+docker compose -f deploy/dockhand/compose.prod.yml --profile ops run --rm postgres-backup
+```
+
+Run file storage backups with:
+
+```bash
+docker compose -f deploy/dockhand/compose.prod.yml --profile ops run --rm storage-backup
+```
+
+See `docs/BACKUP_RESTORE.md` for restore commands, schedules, and validation steps.
 
 ### Content Security Policy
 

@@ -8,6 +8,7 @@ import { CACHE_KEYS } from "@/lib/cache-keys"
 import slugify from "slugify"
 import { writeFile, mkdir } from "fs/promises"
 import path from "path"
+import { privateDownloadRoot, publicUploadRoot } from "@/lib/storage-paths"
 
 // Константы для валидации файлов
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
@@ -64,7 +65,7 @@ export async function createProduct(formData: FormData) {
         return { error: "Установочный пакет слишком большой (макс. 100MB)" }
       }
 
-      const downloadsDir = path.join(process.cwd(), "downloads")
+      const downloadsDir = privateDownloadRoot()
       await mkdir(downloadsDir, { recursive: true })
 
       // Санитизация имени файла
@@ -79,7 +80,7 @@ export async function createProduct(formData: FormData) {
     // Сохраняем изображения
     const images: string[] = []
     if (imageFiles.length > 0) {
-      const uploadsDir = path.join(process.cwd(), "public", "uploads", "products")
+      const uploadsDir = path.join(publicUploadRoot(), "products")
       await mkdir(uploadsDir, { recursive: true })
 
       for (const file of imageFiles) {
@@ -194,7 +195,7 @@ export async function updateProduct(id: string, formData: FormData) {
         return { error: "Установочный пакет слишком большой (макс. 100MB)" }
       }
 
-      const downloadsDir = path.join(process.cwd(), "downloads")
+      const downloadsDir = privateDownloadRoot()
       await mkdir(downloadsDir, { recursive: true })
 
       // Санитизация имени файла
@@ -211,7 +212,7 @@ export async function updateProduct(id: string, formData: FormData) {
     const imageFiles = formData.getAll("images") as File[]
 
     if (imageFiles.length > 0) {
-      const uploadsDir = path.join(process.cwd(), "public", "uploads", "products")
+      const uploadsDir = path.join(publicUploadRoot(), "products")
       await mkdir(uploadsDir, { recursive: true })
 
       for (const file of imageFiles) {

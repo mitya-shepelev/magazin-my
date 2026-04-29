@@ -47,9 +47,9 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Create directories for uploads
-RUN mkdir -p public/uploads private/downloads
-RUN chown -R nextjs:nodejs public/uploads private/downloads
+# Create directories for persistent storage mounts
+RUN mkdir -p public/uploads private/downloads uploads/messages
+RUN chown -R nextjs:nodejs public/uploads private/downloads uploads/messages
 
 USER nextjs
 

@@ -16,6 +16,7 @@ Current maturity: MVP/alpha. The core product flows exist, but the project still
 - `docs/adr/README.md` - ADR index and template.
 - `docs/adr/*.md` - Architecture decisions for the main technical choices.
 - `docs/DEPLOYMENT.md` - Deployment guide.
+- `docs/BACKUP_RESTORE.md` - Production backup and restore runbook.
 - `docs/audits/` - Security and technical audits.
 - `docs/plans/` - Historical implementation plans.
 - `.github/workflows/ci.yml` - GitHub Actions CI.
@@ -273,6 +274,7 @@ Production rules:
 - Use `dev` or a dedicated staging stack for pre-production validation.
 - Run Prisma migrations as part of the deploy flow before serving new app code.
 - Keep PostgreSQL, Redis, uploads, and private installation packages on persistent volumes or managed services with backups.
+- Keep order message attachments on a persistent private volume with backups.
 
 ## Before Shipping Changes
 
@@ -296,5 +298,5 @@ For payment, license, auth, WebSocket, or stage-flow changes, include a manual s
 1. Expand smoke coverage into focused tests for auth, checkout, and remaining admin APIs.
 2. Keep `npm run lint`, `npm run build`, `npm run smoke:critical`, and `npm run smoke:api-security` green on `dev`.
 3. Harden production security: staging-tune CSP, stricter webhook verification, and provider IP policy.
-4. Define production file storage, backups, monitoring, and rollback.
+4. Run a staging restore drill and define monitoring/rollback.
 5. Validate one complete paid-order flow in staging.
