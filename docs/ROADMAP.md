@@ -12,6 +12,7 @@
 - Add missing TypeScript types in storefront cards and webhook helpers.
 - Clean up unused imports and variables.
 - Add a minimal smoke test script/checklist for local QA.
+- Keep `npm run smoke:critical` green for paid-order, license, audit, and installation-stage flows.
 - Verify the full scenario: create product, define stage templates, register customer, create payment, process webhook, generate license, bind domain/IP, chat, complete stages.
 - Update README from the default Next.js template to project-specific onboarding.
 

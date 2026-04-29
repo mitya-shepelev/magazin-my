@@ -41,6 +41,7 @@ npm run db:seed          # Create admin user
 # Build & Lint
 npm run build
 npm run lint
+npm run smoke:critical
 ```
 
 ## Git Workflow
@@ -87,15 +88,16 @@ Minimum expectations:
 - Mark the PR target: feature PR to `dev` or release PR from `dev` to `main`.
 - Run or document `npm run lint`.
 - Run or document `npm run build`.
+- Run or document `npm run smoke:critical` when changing payments, orders, licenses, installation stages, or related Prisma models.
 - Build `ws-server` when WebSocket code changes.
 - Include Prisma migrations when schema changes.
 - Include manual QA notes for payment, auth, licenses, order stages, chat, or user-facing UI.
 
-Known verification status as of 2026-04-28:
-- `npm run lint` fails with existing errors and warnings.
-- Some failures are caused by generated/build output under `ws-server/dist` being linted.
-- Other failures are real app issues: `any` types, React Compiler `set-state-in-effect`, `prefer-const`, unescaped quotes, unused symbols.
-- No automated test suite is currently defined.
+Known verification status as of 2026-04-29:
+- `npm run lint` passes.
+- `npm run build` passes.
+- `npm run smoke:critical` covers the paid order, license, activation, audit, and installation-stage flow.
+- Broader automated tests are still needed for auth, UI checkout, chat APIs, and WebSocket behavior.
 
 ## Architecture
 
@@ -276,18 +278,19 @@ Run the narrowest useful checks for the change. Prefer:
 ```bash
 npm run lint
 npm run build
+npm run smoke:critical
 ```
 
 If those fail on pre-existing issues, record the exact failure category in the final handoff. Do not claim production readiness while lint/build are red.
 
 For frontend work, start the dev server and verify the changed screen in a browser when feasible.
 
-For payment, license, auth, WebSocket, or stage-flow changes, include a manual scenario checklist in the handoff if automated tests are not available. For license changes, verify customer license visibility, activation API behavior, admin license controls, and license audit events.
+For payment, license, auth, WebSocket, or stage-flow changes, include a manual scenario checklist in the handoff if automated tests are not available. For license changes, verify customer license visibility, activation API behavior, admin license controls, and license audit events. Use `npm run smoke:critical` for payment/order/license/stage changes.
 
 ## Current Release Priorities
 
-1. Make lint pass and exclude generated output from lint scope.
-2. Add basic tests or smoke scripts for auth, checkout, webhook, licenses, stages, and chat APIs.
+1. Expand smoke coverage into focused tests for auth, checkout, webhook signatures, stages, and chat APIs.
+2. Keep `npm run lint`, `npm run build`, and `npm run smoke:critical` green on `dev`.
 3. Harden production security: rate limiting, CSP, webhook idempotency, secrets validation.
 4. Define production file storage, backups, monitoring, and rollback.
 5. Validate one complete paid-order flow in staging.
