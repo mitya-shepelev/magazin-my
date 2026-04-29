@@ -12,6 +12,7 @@ type SmokeContext = {
   productId?: string
   orderId?: string
   otherOrderId?: string
+  webhookOrderId?: string
 }
 
 type SmokeUser = {
@@ -103,11 +104,26 @@ async function readJson(response: Response) {
 }
 
 async function cleanup() {
-  if (context.orderId || context.otherOrderId) {
+  await db.paymentWebhookEvent.deleteMany({
+    where: {
+      OR: [
+        { paymentId: { contains: runId } },
+        {
+          orderId: {
+            in: [context.orderId, context.otherOrderId, context.webhookOrderId].filter(
+              (id): id is string => Boolean(id)
+            ),
+          },
+        },
+      ],
+    },
+  })
+
+  if (context.orderId || context.otherOrderId || context.webhookOrderId) {
     await db.order.deleteMany({
       where: {
         id: {
-          in: [context.orderId, context.otherOrderId].filter(
+          in: [context.orderId, context.otherOrderId, context.webhookOrderId].filter(
             (id): id is string => Boolean(id)
           ),
         },
@@ -248,6 +264,24 @@ async function createFixtures() {
   })
   context.otherOrderId = otherOrder.id
 
+  const webhookOrder = await db.order.create({
+    data: {
+      orderNumber: `ORD-API-SEC-WEBHOOK-${runId}`,
+      userId: owner.id,
+      total: product.price,
+      customerEmail: owner.email,
+      customerName: owner.name,
+      items: {
+        create: {
+          productId: product.id,
+          productName: product.name,
+          price: product.price,
+        },
+      },
+    },
+  })
+  context.webhookOrderId = webhookOrder.id
+
   await markOrderPaid({
     orderId: order.id,
     paymentId: `pay_${runId}`,
@@ -284,8 +318,10 @@ async function createFixtures() {
     admin,
     owner,
     otherUser,
+    product,
     order,
     otherOrder,
+    webhookOrder,
     clientActionStage,
     confirmationStage,
     otherStage,
@@ -322,6 +358,54 @@ async function verifyWebhookSecurity() {
   assert(staleResponse.status === 403, "Stale webhook timestamp should be rejected")
 
   logStep("webhook signatures reject invalid and stale requests")
+}
+
+async function verifyWebhookIdempotency(fixtures: Awaited<ReturnType<typeof createFixtures>>) {
+  const { POST } = await import("../src/app/api/payment/webhook/route")
+  const body = {
+    event_id: `evt_${runId}`,
+    event_type: "payment.paid",
+    payment_id: `webhook_paid_${runId}`,
+    order_id: fixtures.webhookOrder.id,
+    status: "paid",
+  }
+  const now = Math.floor(Date.now() / 1000)
+
+  const firstResponse = await POST(
+    signedWebhookRequest(body, now, signWebhook(body, now), "198.51.100.13")
+  )
+  assert(firstResponse.status === 200, "First paid webhook should be accepted")
+
+  const secondResponse = await POST(
+    signedWebhookRequest(body, now, signWebhook(body, now), "198.51.100.14")
+  )
+  assert(secondResponse.status === 200, "Duplicate paid webhook should be acknowledged")
+
+  const duplicateResult = await readJson(secondResponse)
+  assert(duplicateResult.duplicate === true, "Duplicate webhook should be reported as duplicate")
+
+  const [webhookEvents, webhookOrder, product] = await Promise.all([
+    db.paymentWebhookEvent.findMany({
+      where: { paymentId: `webhook_paid_${runId}` },
+    }),
+    db.order.findUnique({
+      where: { id: fixtures.webhookOrder.id },
+      include: {
+        licenses: true,
+        stages: true,
+      },
+    }),
+    db.product.findUnique({ where: { id: fixtures.product.id } }),
+  ])
+
+  assert(webhookEvents.length === 1, "Duplicate webhook should create one stored event")
+  assert(webhookEvents[0]?.processingStatus === "PROCESSED", "Stored webhook event should be processed")
+  assert(webhookOrder?.status === "PAID", "Webhook order should be paid")
+  assert(webhookOrder.licenses.length === 1, "Duplicate webhook should create one license")
+  assert(webhookOrder.stages.length === 2, "Duplicate webhook should create one stage set")
+  assert(product?.downloads === 2, "Duplicate webhook should increment purchase counter once")
+
+  logStep("payment webhook duplicate delivery is idempotent")
 }
 
 async function verifyOrderMessageSecurity(fixtures: Awaited<ReturnType<typeof createFixtures>>) {
@@ -488,6 +572,7 @@ async function main() {
   logStep("created isolated users, product, paid order, and stages")
 
   await verifyWebhookSecurity()
+  await verifyWebhookIdempotency(fixtures)
   await verifyOrderMessageSecurity(fixtures)
   await verifyUploadSecurity(fixtures)
   await verifyStageSecurity(fixtures)
