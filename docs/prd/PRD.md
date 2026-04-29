@@ -105,7 +105,7 @@ The differentiator is not selling downloadable files. The product sells the righ
 - No rate limiting.
 - CSP is not configured.
 - Production file storage/backup policy for admin installation packages is not documented in detail.
-- License revocation/admin editing flows are still basic.
+- License revocation/admin editing flows exist, with recent audit history, but still need tests and stronger operational policy.
 - Notification push subscription model is planned but not present in Prisma schema.
 - Status/role fields should move toward Prisma enums.
 
@@ -125,7 +125,7 @@ The differentiator is not selling downloadable files. The product sells the righ
 - Payment webhook is idempotent and monitored.
 - Rate limiting enabled on auth, payment, upload, and chat endpoints.
 - File uploads and private installation packages have size limits, storage quotas, and backup policy.
-- License activation, revocation, and domain/IP binding are covered by tests or a repeatable QA script.
+- License activation, revocation, audit events, and domain/IP binding are covered by tests or a repeatable QA script.
 - Error tracking and uptime monitoring are configured.
 - Database backup and restore have been tested.
 - Admin operational runbook exists.

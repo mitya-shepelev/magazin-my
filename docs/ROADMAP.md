@@ -36,7 +36,7 @@
 - Add uptime checks for Next.js, WS server, Redis, and PostgreSQL.
 - Document and test database backup/restore.
 - Document production storage for uploads and private installation packages.
-- Add admin audit log for sensitive changes.
+- Expand admin audit log coverage for sensitive changes beyond licenses.
 - Add operational runbook for incidents.
 
 ## Phase 3: Customer Experience
@@ -61,7 +61,7 @@
 - Add installation stage presets and cloning.
 - Add admin metrics: paid orders, revenue, active installations, response time.
 - Add admin tools for license domain/IP edits, suspension, revocation, and reissue.
-- Add license audit history for activation checks and admin support actions.
+- Add advanced license audit filters, export, and retention policy.
 
 ## Phase 5: Growth Features
 

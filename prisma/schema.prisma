@@ -159,6 +159,7 @@ model License {
   activationCount Int       @default(0)
   activatedAt     DateTime?
   lastCheckAt     DateTime?
+  events          LicenseEvent[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -166,6 +167,25 @@ model License {
   @@index([orderId])
   @@index([productId])
   @@index([status])
+}
+
+model LicenseEvent {
+  id        String   @id @default(cuid())
+  licenseId String
+  license   License  @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  eventType String   // ACTIVATION_SUCCESS, ACTIVATION_REJECTED, BINDING_UPDATED, BINDING_RESET, STATUS_CHANGED, KEY_REISSUED
+  actorType String   @default("SYSTEM") // ADMIN, LICENSE_API, SYSTEM
+  actorId   String?
+  message   String?
+  domain    String?
+  serverIp  String?
+  metadata  String?  // JSON string with small contextual details
+  createdAt DateTime @default(now())
+
+  @@index([licenseId])
+  @@index([eventType])
+  @@index([actorType])
+  @@index([createdAt])
 }
 
 // ==================== НАСТРОЙКИ САЙТА ====================

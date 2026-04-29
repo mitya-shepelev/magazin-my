@@ -40,6 +40,7 @@ import {
   Ban,
   CheckCircle,
   Globe,
+  History,
   KeyRound,
   RefreshCw,
   RotateCcw,
@@ -68,6 +69,15 @@ const statusConfig = {
   },
 }
 
+const eventConfig = {
+  ACTIVATION_SUCCESS: "Активация прошла",
+  ACTIVATION_REJECTED: "Активация отклонена",
+  BINDING_UPDATED: "Привязка изменена",
+  BINDING_RESET: "Привязка сброшена",
+  STATUS_CHANGED: "Статус изменён",
+  KEY_REISSUED: "Ключ перевыпущен",
+}
+
 interface AdminLicensesPageProps {
   searchParams: Promise<{
     q?: string
@@ -92,6 +102,10 @@ function formatDate(value: Date | null) {
 function statusBadge(status: string) {
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.ACTIVE
   return <Badge className={config.className}>{config.label}</Badge>
+}
+
+function eventLabel(eventType: string) {
+  return eventConfig[eventType as keyof typeof eventConfig] || eventType
 }
 
 async function getLicenses(q: string, status: string) {
@@ -122,6 +136,10 @@ async function getLicenses(q: string, status: string) {
       },
       order: {
         select: { id: true, orderNumber: true, status: true },
+      },
+      events: {
+        orderBy: { createdAt: "desc" },
+        take: 3,
       },
     },
   })
@@ -252,6 +270,7 @@ export default async function AdminLicensesPage({ searchParams }: AdminLicensesP
                   <TableHead>Привязка</TableHead>
                   <TableHead>Статус</TableHead>
                   <TableHead>Проверка</TableHead>
+                  <TableHead>История</TableHead>
                   <TableHead className="text-right">Действия</TableHead>
                 </TableRow>
               </TableHeader>
@@ -313,6 +332,31 @@ export default async function AdminLicensesPage({ searchParams }: AdminLicensesP
                           Последняя: {formatDate(license.lastCheckAt)}
                         </p>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {license.events.length > 0 ? (
+                        <div className="space-y-2 min-w-56">
+                          {license.events.map((event) => (
+                            <div key={event.id} className="text-sm">
+                              <div className="flex items-center gap-2">
+                                <History className="h-3 w-3 text-muted-foreground" />
+                                <span>{eventLabel(event.eventType)}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {formatDate(event.createdAt)}
+                              </p>
+                              {event.domain && (
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {event.domain}
+                                  {event.serverIp ? ` / ${event.serverIp}` : ""}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">Нет событий</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex flex-col gap-2 items-end">

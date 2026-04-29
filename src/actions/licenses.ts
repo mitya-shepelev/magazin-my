@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { generateLicenseKey, normalizeDomain } from "@/lib/licenses"
+import { generateLicenseKey, normalizeDomain, recordLicenseEvent } from "@/lib/licenses"
 
 const LICENSE_STATUSES = new Set(["ACTIVE", "SUSPENDED", "REVOKED"])
 
@@ -33,7 +33,7 @@ async function revalidateLicenseViews(orderId?: string) {
 }
 
 export async function updateLicenseBinding(formData: FormData) {
-  await requireAdmin()
+  const session = await requireAdmin()
 
   const licenseId = readString(formData, "licenseId")
   const domain = normalizeDomain(readString(formData, "domain"))
@@ -42,6 +42,14 @@ export async function updateLicenseBinding(formData: FormData) {
   if (!licenseId) {
     throw new Error("License id is required")
   }
+
+  const previousLicense = await db.license.findUnique({
+    where: { id: licenseId },
+    select: {
+      domain: true,
+      serverIp: true,
+    },
+  })
 
   const now = new Date()
   const isBound = Boolean(domain || serverIp)
@@ -57,17 +65,40 @@ export async function updateLicenseBinding(formData: FormData) {
     select: { orderId: true },
   })
 
+  await recordLicenseEvent({
+    licenseId,
+    eventType: "BINDING_UPDATED",
+    actorType: "ADMIN",
+    actorId: session.user.id,
+    message: "Admin updated license domain/IP binding",
+    domain: domain || null,
+    serverIp: serverIp || null,
+    metadata: {
+      previousDomain: previousLicense?.domain || null,
+      previousServerIp: previousLicense?.serverIp || null,
+    },
+  })
+
   await revalidateLicenseViews(license.orderId)
 }
 
 export async function resetLicenseBinding(formData: FormData) {
-  await requireAdmin()
+  const session = await requireAdmin()
 
   const licenseId = readString(formData, "licenseId")
 
   if (!licenseId) {
     throw new Error("License id is required")
   }
+
+  const previousLicense = await db.license.findUnique({
+    where: { id: licenseId },
+    select: {
+      domain: true,
+      serverIp: true,
+      activationCount: true,
+    },
+  })
 
   const license = await db.license.update({
     where: { id: licenseId },
@@ -81,17 +112,39 @@ export async function resetLicenseBinding(formData: FormData) {
     select: { orderId: true },
   })
 
+  await recordLicenseEvent({
+    licenseId,
+    eventType: "BINDING_RESET",
+    actorType: "ADMIN",
+    actorId: session.user.id,
+    message: "Admin reset license domain/IP binding",
+    domain: previousLicense?.domain || null,
+    serverIp: previousLicense?.serverIp || null,
+    metadata: {
+      previousActivationCount: previousLicense?.activationCount || 0,
+    },
+  })
+
   await revalidateLicenseViews(license.orderId)
 }
 
 export async function reissueLicenseKey(formData: FormData) {
-  await requireAdmin()
+  const session = await requireAdmin()
 
   const licenseId = readString(formData, "licenseId")
 
   if (!licenseId) {
     throw new Error("License id is required")
   }
+
+  const previousLicense = await db.license.findUnique({
+    where: { id: licenseId },
+    select: {
+      licenseKey: true,
+      domain: true,
+      serverIp: true,
+    },
+  })
 
   const license = await db.license.update({
     where: { id: licenseId },
@@ -107,11 +160,24 @@ export async function reissueLicenseKey(formData: FormData) {
     select: { orderId: true },
   })
 
+  await recordLicenseEvent({
+    licenseId,
+    eventType: "KEY_REISSUED",
+    actorType: "ADMIN",
+    actorId: session.user.id,
+    message: "Admin reissued license key and reset binding",
+    domain: previousLicense?.domain || null,
+    serverIp: previousLicense?.serverIp || null,
+    metadata: {
+      previousKeySuffix: previousLicense?.licenseKey.slice(-4) || null,
+    },
+  })
+
   await revalidateLicenseViews(license.orderId)
 }
 
 export async function updateLicenseStatus(formData: FormData) {
-  await requireAdmin()
+  const session = await requireAdmin()
 
   const licenseId = readString(formData, "licenseId")
   const status = readString(formData, "status").toUpperCase()
@@ -124,10 +190,33 @@ export async function updateLicenseStatus(formData: FormData) {
     throw new Error("Invalid license status")
   }
 
+  const previousLicense = await db.license.findUnique({
+    where: { id: licenseId },
+    select: {
+      status: true,
+      domain: true,
+      serverIp: true,
+    },
+  })
+
   const license = await db.license.update({
     where: { id: licenseId },
     data: { status },
     select: { orderId: true },
+  })
+
+  await recordLicenseEvent({
+    licenseId,
+    eventType: "STATUS_CHANGED",
+    actorType: "ADMIN",
+    actorId: session.user.id,
+    message: `Admin changed license status to ${status}`,
+    domain: previousLicense?.domain || null,
+    serverIp: previousLicense?.serverIp || null,
+    metadata: {
+      previousStatus: previousLicense?.status || null,
+      nextStatus: status,
+    },
   })
 
   await revalidateLicenseViews(license.orderId)

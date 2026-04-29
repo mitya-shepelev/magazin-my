@@ -50,3 +50,27 @@ export async function createLicenseForOrderItem(params: {
     },
   })
 }
+
+export async function recordLicenseEvent(params: {
+  licenseId: string
+  eventType: string
+  actorType?: "ADMIN" | "LICENSE_API" | "SYSTEM"
+  actorId?: string | null
+  message?: string
+  domain?: string | null
+  serverIp?: string | null
+  metadata?: Record<string, unknown>
+}) {
+  return db.licenseEvent.create({
+    data: {
+      licenseId: params.licenseId,
+      eventType: params.eventType,
+      actorType: params.actorType || "SYSTEM",
+      actorId: params.actorId || null,
+      message: params.message || null,
+      domain: params.domain || null,
+      serverIp: params.serverIp || null,
+      metadata: params.metadata ? JSON.stringify(params.metadata) : null,
+    },
+  })
+}
