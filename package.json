@@ -3,15 +3,28 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "env -u PGHOST WATCHPACK_POLLING=true WATCHPACK_POLLING_INTERVAL=1000 next dev --webpack",
+    "build": "env -u PGHOST next build",
+    "start": "env -u PGHOST next start",
     "lint": "eslint",
-    "postinstall": "prisma generate",
-    "db:migrate": "npx prisma migrate dev",
-    "db:push": "npx prisma db push",
-    "db:studio": "npx prisma studio",
-    "db:seed": "npx tsx scripts/create-admin.ts"
+    "smoke:critical": "dotenv -e .env -- env -u PGHOST npx tsx scripts/smoke-critical-flows.ts",
+    "smoke:auth-checkout": "dotenv -e .env -- env -u PGHOST npx tsx scripts/smoke-auth-checkout.ts",
+    "smoke:admin-api": "dotenv -e .env -- env -u PGHOST npx tsx scripts/smoke-admin-api.ts",
+    "smoke:chat-api": "dotenv -e .env -- env -u PGHOST npx tsx scripts/smoke-chat-api.ts",
+    "smoke:api-security": "dotenv -e .env -- env -u PGHOST npx tsx scripts/smoke-api-security.ts",
+    "db:migrate": "env -u PGHOST npx prisma migrate dev",
+    "db:push": "env -u PGHOST npx prisma db push",
+    "db:studio": "env -u PGHOST npx prisma studio",
+    "db:seed": "env -u PGHOST npx tsx scripts/create-admin.ts",
+    "db:seed:demo": "env -u PGHOST npx tsx src/scripts/seed.ts",
+    "docker:local": "node scripts/docker-local.mjs",
+    "docker:local:up": "node scripts/docker-local.mjs up -d",
+    "docker:local:down": "node scripts/docker-local.mjs down",
+    "docker:local:ps": "node scripts/docker-local.mjs ps",
+    "docker:desktop:up": "docker compose --env-file .env.docker.example -f docker-compose.docker-desktop.yml up -d --build",
+    "docker:desktop:down": "docker compose --env-file .env.docker.example -f docker-compose.docker-desktop.yml down",
+    "docker:desktop:ps": "docker compose --env-file .env.docker.example -f docker-compose.docker-desktop.yml ps",
+    "docker:desktop:logs": "docker compose --env-file .env.docker.example -f docker-compose.docker-desktop.yml logs -f app ws"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -40,7 +53,7 @@
     "next-auth": "^5.0.0-beta.30",
     "next-themes": "^0.4.6",
     "pg": "^8.16.3",
-    "prisma": "^6.19.2",
+    "prisma": "^7.2.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.69.0",
@@ -68,6 +81,6 @@
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "tw-animate-css": "^1.4.0",
-    "typescript": "5.9.3"
+    "typescript": "^5"
   }
 }

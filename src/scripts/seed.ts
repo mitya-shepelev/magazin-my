@@ -1,8 +1,64 @@
+import "dotenv/config"
 import { db } from "@/lib/db"
 import { hash } from "bcryptjs"
+import { mkdir, writeFile } from "fs/promises"
+import path from "path"
+
+const leatherImage = "/images/products/leather-shop.svg"
+const schoolImage = "/images/products/online-school.svg"
+const leatherDownload = "/downloads/leather-shop.zip"
+const schoolDownload = "/downloads/online-school.zip"
+
+async function ensureDemoAssets() {
+  const imageDir = path.join(process.cwd(), "public", "images", "products")
+  const downloadsDir = path.join(process.cwd(), "downloads")
+
+  await mkdir(imageDir, { recursive: true })
+  await mkdir(downloadsDir, { recursive: true })
+
+  await writeFile(
+    path.join(imageDir, "leather-shop.svg"),
+    `<svg xmlns="http://www.w3.org/2000/svg" width="1184" height="864" viewBox="0 0 1184 864">
+  <rect width="1184" height="864" fill="#111827"/>
+  <rect x="96" y="96" width="992" height="672" rx="48" fill="#f59e0b"/>
+  <rect x="160" y="168" width="864" height="120" rx="24" fill="#1f2937"/>
+  <rect x="160" y="344" width="280" height="280" rx="32" fill="#78350f"/>
+  <rect x="488" y="344" width="280" height="280" rx="32" fill="#92400e"/>
+  <rect x="816" y="344" width="208" height="280" rx="32" fill="#451a03"/>
+  <text x="592" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" font-weight="700" fill="#f9fafb">Leather Shop</text>
+</svg>`,
+    "utf8"
+  )
+
+  await writeFile(
+    path.join(imageDir, "online-school.svg"),
+    `<svg xmlns="http://www.w3.org/2000/svg" width="1184" height="864" viewBox="0 0 1184 864">
+  <rect width="1184" height="864" fill="#0f172a"/>
+  <rect x="112" y="112" width="960" height="640" rx="48" fill="#2563eb"/>
+  <rect x="184" y="184" width="440" height="344" rx="32" fill="#dbeafe"/>
+  <rect x="680" y="184" width="320" height="72" rx="20" fill="#bfdbfe"/>
+  <rect x="680" y="304" width="320" height="72" rx="20" fill="#93c5fd"/>
+  <rect x="680" y="424" width="320" height="72" rx="20" fill="#60a5fa"/>
+  <text x="592" y="640" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" font-weight="700" fill="#f8fafc">Online School</text>
+</svg>`,
+    "utf8"
+  )
+
+  await writeFile(
+    path.join(downloadsDir, "leather-shop.zip"),
+    "Demo archive placeholder for Leather Shop. Replace this file in production.\n",
+    "utf8"
+  )
+  await writeFile(
+    path.join(downloadsDir, "online-school.zip"),
+    "Demo archive placeholder for Online School. Replace this file in production.\n",
+    "utf8"
+  )
+}
 
 async function main() {
   console.log("Seeding database...")
+  await ensureDemoAssets()
 
   // Создаём админа
   const adminPassword = await hash("admin123", 12)
@@ -62,7 +118,10 @@ async function main() {
   // Создаём товары
   const product1 = await db.product.upsert({
     where: { slug: "magazin-kozhevnika" },
-    update: {},
+    update: {
+      images: JSON.stringify([leatherImage]),
+      downloadFile: leatherDownload,
+    },
     create: {
       name: "Магазин кожевника",
       slug: "magazin-kozhevnika",
@@ -70,8 +129,8 @@ async function main() {
       description: "Полнофункциональный интернет-магазин для продажи изделий из кожи. Включает каталог товаров, корзину, оплату, личный кабинет покупателя.",
       price: 38000,
       oldPrice: 87000,
-      images: JSON.stringify(["/images/products/leather-shop.jpg"]),
-      downloadFile: "/downloads/leather-shop.zip",
+      images: JSON.stringify([leatherImage]),
+      downloadFile: leatherDownload,
       demoUrl: "https://demo.example.com/leather",
       version: "1.0.0",
       categoryId: webCategory.id,
@@ -86,7 +145,10 @@ async function main() {
 
   const product2 = await db.product.upsert({
     where: { slug: "onlajn-shkola" },
-    update: {},
+    update: {
+      images: JSON.stringify([schoolImage]),
+      downloadFile: schoolDownload,
+    },
     create: {
       name: "Онлайн школа",
       slug: "onlajn-shkola",
@@ -94,8 +156,8 @@ async function main() {
       description: "Платформа для онлайн-обучения с поддержкой видео-курсов, тестов, сертификатов и системы оплаты.",
       price: 27000,
       oldPrice: 59000,
-      images: JSON.stringify(["/images/products/online-school.jpg"]),
-      downloadFile: "/downloads/online-school.zip",
+      images: JSON.stringify([schoolImage]),
+      downloadFile: schoolDownload,
       demoUrl: "https://demo.example.com/school",
       version: "2.0.0",
       categoryId: webCategory.id,
@@ -216,8 +278,8 @@ async function main() {
 
 Для приёма платежей нужны данные от платёжной системы:
 
-- **ЮKassa:** shopId и секретный ключ
-- Или **Stripe:** publishable key и secret key
+- **RollyPay:** API key и signing secret
+- Callback URL для webhook
 
 Отправьте данные в чат.`,
       type: "CLIENT_ACTION",

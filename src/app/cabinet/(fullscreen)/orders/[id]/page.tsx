@@ -1,11 +1,12 @@
 import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { ArrowLeft, Package, HelpCircle, Calendar, ShoppingBag } from "lucide-react"
+import { ArrowLeft, HelpCircle, Calendar, ShoppingBag } from "lucide-react"
 import { ClientStagesProgress } from "@/components/cabinet/ClientStagesProgress"
 import { ClientOrderChat } from "@/components/cabinet/ClientOrderChat"
 
@@ -167,7 +168,13 @@ export default async function ClientOrderPage({ params }: ClientOrderPageProps) 
                 const firstItem = order.items[0]
                 const images = firstItem?.product?.images ? JSON.parse(firstItem.product.images) : []
                 return images[0] ? (
-                  <img src={images[0]} alt={firstItem.productName} className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                  <Image
+                    src={images[0]}
+                    alt={firstItem.productName}
+                    width={40}
+                    height={40}
+                    className="w-10 h-10 rounded-lg object-cover shrink-0"
+                  />
                 ) : (
                   <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
                     <ShoppingBag className="h-5 w-5 text-muted-foreground" />

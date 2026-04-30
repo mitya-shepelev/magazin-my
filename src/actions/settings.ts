@@ -15,9 +15,10 @@ const SETTING_KEYS = [
   "store_address",
   "store_logo",
   // Payment
-  "yookassa_shop_id",
-  "yookassa_secret_key",
-  "yookassa_return_url",
+  "payment_provider",
+  "rollypay_api_url",
+  "payment_success_url",
+  "payment_fail_url",
   "currency",
   // Email
   "smtp_host",

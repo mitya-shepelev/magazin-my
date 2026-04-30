@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -18,7 +19,7 @@ import {
 } from "@/components/ui/select"
 import { createProduct, updateProduct } from "@/actions/products"
 import { toast } from "sonner"
-import { Loader2, X, Upload } from "lucide-react"
+import { Loader2, X } from "lucide-react"
 
 interface Product {
   id: string
@@ -258,7 +259,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="downloadFile">Файл для скачивания</Label>
+                <Label htmlFor="downloadFile">Пакет для установки</Label>
                 <Input
                   id="downloadFile"
                   name="downloadFile"
@@ -268,7 +269,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                 />
                 {product?.downloadFile && (
                   <p className="text-sm text-muted-foreground">
-                    Текущий файл: {product.downloadFile}
+                    Текущий установочный пакет: {product.downloadFile}
                   </p>
                 )}
               </div>
@@ -291,9 +292,11 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {images.map((image, index) => (
                       <div key={index} className="relative group">
-                        <img
+                        <Image
                           src={image}
                           alt={`Изображение ${index + 1}`}
+                          width={240}
+                          height={128}
                           className="w-full h-32 object-cover rounded-lg"
                         />
                         <button

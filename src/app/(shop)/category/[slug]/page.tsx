@@ -1,6 +1,7 @@
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Suspense } from "react"
 import { db } from "@/lib/db"
 import { cached } from "@/lib/cache"
@@ -10,6 +11,8 @@ import { Badge } from "@/components/ui/badge"
 import { Globe, Smartphone, ShoppingCart, Zap, ArrowRight } from "lucide-react"
 import { ImagePlaceholder } from "@/components/ui/image-placeholder"
 import { CatalogSort } from "@/components/shop/CatalogSort"
+
+export const dynamic = "force-dynamic"
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>
@@ -50,6 +53,8 @@ async function getCategory(slug: string, sort: SortOption = "featured") {
     CACHE_TTL.PRODUCTS
   )
 }
+
+type CategoryProduct = NonNullable<Awaited<ReturnType<typeof getCategory>>>["products"][number]
 
 async function getCategories() {
   return cached(
@@ -185,8 +190,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
             {category.products.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {category.products.map((product, index) => (
-                  <ProductCard key={product.id} product={product} categoryName={category.name} index={index} />
+                {category.products.map((product) => (
+                  <ProductCard key={product.id} product={product} categoryName={category.name} />
                 ))}
               </div>
             ) : (
@@ -208,8 +213,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   )
 }
 
-function ProductCard({ product, categoryName, index }: { product: any; categoryName: string; index: number }) {
-  const images = JSON.parse(product.images || "[]")
+function ProductCard({ product, categoryName }: { product: CategoryProduct; categoryName: string }) {
+  const images = JSON.parse(product.images || "[]") as string[]
   const discountPercent = product.oldPrice
     ? Math.round((1 - product.price / product.oldPrice) * 100)
     : 0
@@ -220,9 +225,11 @@ function ProductCard({ product, categoryName, index }: { product: any; categoryN
         {/* Image */}
         <div className="aspect-[16/10] bg-secondary/50 relative overflow-hidden">
           {images[0] ? (
-            <img
+            <Image
               src={images[0]}
               alt={product.name}
+              fill
+              sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
           ) : (

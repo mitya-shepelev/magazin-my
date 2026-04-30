@@ -8,6 +8,7 @@ import { CACHE_KEYS } from "@/lib/cache-keys"
 import slugify from "slugify"
 import { writeFile, mkdir } from "fs/promises"
 import path from "path"
+import { privateDownloadRoot, publicUploadRoot } from "@/lib/storage-paths"
 
 // Константы для валидации файлов
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
@@ -56,15 +57,15 @@ export async function createProduct(formData: FormData) {
   const slug = slugify(name, { lower: true, locale: "ru" })
 
   try {
-    // Сохраняем файл для скачивания
+    // Сохраняем приватный установочный пакет для администратора
     let downloadFilePath = ""
     if (downloadFile && downloadFile.size > 0) {
       // Валидация размера файла
       if (downloadFile.size > MAX_DOWNLOAD_SIZE) {
-        return { error: "Файл для скачивания слишком большой (макс. 100MB)" }
+        return { error: "Установочный пакет слишком большой (макс. 100MB)" }
       }
 
-      const downloadsDir = path.join(process.cwd(), "downloads")
+      const downloadsDir = privateDownloadRoot()
       await mkdir(downloadsDir, { recursive: true })
 
       // Санитизация имени файла
@@ -79,7 +80,7 @@ export async function createProduct(formData: FormData) {
     // Сохраняем изображения
     const images: string[] = []
     if (imageFiles.length > 0) {
-      const uploadsDir = path.join(process.cwd(), "public", "uploads", "products")
+      const uploadsDir = path.join(publicUploadRoot(), "products")
       await mkdir(uploadsDir, { recursive: true })
 
       for (const file of imageFiles) {
@@ -184,17 +185,17 @@ export async function updateProduct(id: string, formData: FormData) {
       return { error: "Товар не найден" }
     }
 
-    // Обрабатываем новый файл для скачивания
+    // Обрабатываем новый приватный установочный пакет
     const downloadFile = formData.get("downloadFile") as File
     let downloadFilePath = currentProduct.downloadFile
 
     if (downloadFile && downloadFile.size > 0) {
       // Валидация размера файла
       if (downloadFile.size > MAX_DOWNLOAD_SIZE) {
-        return { error: "Файл для скачивания слишком большой (макс. 100MB)" }
+        return { error: "Установочный пакет слишком большой (макс. 100MB)" }
       }
 
-      const downloadsDir = path.join(process.cwd(), "downloads")
+      const downloadsDir = privateDownloadRoot()
       await mkdir(downloadsDir, { recursive: true })
 
       // Санитизация имени файла
@@ -211,7 +212,7 @@ export async function updateProduct(id: string, formData: FormData) {
     const imageFiles = formData.getAll("images") as File[]
 
     if (imageFiles.length > 0) {
-      const uploadsDir = path.join(process.cwd(), "public", "uploads", "products")
+      const uploadsDir = path.join(publicUploadRoot(), "products")
       await mkdir(uploadsDir, { recursive: true })
 
       for (const file of imageFiles) {
@@ -326,7 +327,7 @@ export async function deleteProduct(id: string) {
     await invalidatePattern('related:*')
 
     return { success: true }
-  } catch (error) {
+  } catch {
     return { error: "Ошибка при удалении товара" }
   }
 }

@@ -154,7 +154,7 @@ export function OrderChat({ orderId, messages: initialMessages, currentUserId, c
       setMessageText("")
       setFiles([])
       // No router.refresh() needed - message arrives via WebSocket
-    } catch (error) {
+    } catch {
       toast.error("Ошибка отправки сообщения")
     } finally {
       setIsSending(false)

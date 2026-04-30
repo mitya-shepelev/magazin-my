@@ -1,15 +1,21 @@
-# syntax=docker/dockerfile:1
+ARG NODE_IMAGE=public.ecr.aws/docker/library/node:20-alpine
 
-FROM node:20-alpine AS base
+FROM ${NODE_IMAGE} AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./
 RUN npm ci
+
+FROM base AS migrator
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma
+COPY prisma.config.ts ./
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -22,6 +28,14 @@ RUN npx prisma generate
 
 # Build application
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/magazin_build
+ENV NEXTAUTH_SECRET=build-time-nextauth-secret-at-least-32-chars
+ENV WS_JWT_SECRET=build-time-ws-secret-at-least-32-chars
+ENV NEXT_PUBLIC_APP_URL=http://localhost:3000
+ENV NEXT_PUBLIC_WS_URL=ws://localhost:3001
+ENV REDIS_HOST=localhost
+ENV REDIS_PORT=6379
+ENV PAYMENT_PROVIDER=mock
 RUN npm run build
 
 # Production image, copy all the files and run next
@@ -47,9 +61,9 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Create directories for uploads
-RUN mkdir -p public/uploads private/downloads
-RUN chown -R nextjs:nodejs public/uploads private/downloads
+# Create directories for persistent storage mounts
+RUN mkdir -p public/uploads private/downloads uploads/messages
+RUN chown -R nextjs:nodejs public/uploads private/downloads uploads/messages
 
 USER nextjs
 

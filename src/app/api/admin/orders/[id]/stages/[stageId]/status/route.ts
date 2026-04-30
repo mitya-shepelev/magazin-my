@@ -9,6 +9,12 @@ const updateStatusSchema = z.object({
   status: z.enum(["PENDING", "IN_PROGRESS", "COMPLETED"]),
 })
 
+type StageStatusUpdate = {
+  status: z.infer<typeof updateStatusSchema>["status"]
+  completedAt?: Date | null
+  completedBy?: string | null
+}
+
 // POST /api/admin/orders/[id]/stages/[stageId]/status - изменить статус этапа
 export async function POST(
   request: NextRequest,
@@ -40,7 +46,7 @@ export async function POST(
     }
 
     const newStatus = validation.data.status
-    const updateData: any = { status: newStatus }
+    const updateData: StageStatusUpdate = { status: newStatus }
 
     // Если статус меняется на COMPLETED, записываем кто и когда завершил
     if (newStatus === "COMPLETED") {

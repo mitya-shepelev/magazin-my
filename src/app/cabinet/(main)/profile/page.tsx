@@ -78,7 +78,7 @@ export default function ProfilePage() {
         const data = await response.json()
         toast.error(data.error || "Ошибка при смене пароля")
       }
-    } catch (error) {
+    } catch {
       toast.error("Ошибка при смене пароля")
     }
 

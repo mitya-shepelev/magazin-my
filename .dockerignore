@@ -1,0 +1,35 @@
+# Dependencies
+node_modules
+ws-server/node_modules
+
+# Build output
+.next
+out
+build
+dist
+ws-server/dist
+coverage
+*.tsbuildinfo
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+!.env.staging.example
+!.env.docker.example
+ws-server/.env
+ws-server/.env.*
+!ws-server/.env.example
+
+# Local/generated files
+.git
+.github
+.DS_Store
+.agents
+src/generated/prisma
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*

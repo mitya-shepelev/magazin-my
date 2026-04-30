@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { db } from "@/lib/db"
 import { cached } from "@/lib/cache"
 import { CACHE_KEYS, CACHE_TTL } from "@/lib/cache-keys"
@@ -23,6 +24,8 @@ import {
 import { ImagePlaceholder } from "@/components/ui/image-placeholder"
 import { Header } from "@/components/shared/Header"
 import { Footer } from "@/components/shared/Footer"
+
+export const dynamic = "force-dynamic"
 
 // ==================== DATA FETCHING (with Redis Cache) ====================
 
@@ -54,6 +57,8 @@ async function getFeaturedProducts() {
   )
 }
 
+type HomeProduct = Awaited<ReturnType<typeof getFeaturedProducts>>[number]
+
 async function getCategories() {
   return cached(
     CACHE_KEYS.HOME_CATEGORIES,
@@ -68,6 +73,8 @@ async function getCategories() {
   )
 }
 
+type HomeCategory = Awaited<ReturnType<typeof getCategories>>[number]
+
 async function getReviews() {
   return cached(
     CACHE_KEYS.HOME_REVIEWS,
@@ -81,6 +88,8 @@ async function getReviews() {
     CACHE_TTL.CATEGORIES // 5 минут для отзывов
   )
 }
+
+type HomeReview = Awaited<ReturnType<typeof getReviews>>[number]
 
 async function getStats() {
   return cached(
@@ -341,13 +350,13 @@ export default async function HomePage() {
                     icon={Globe}
                     title="Веб-приложения"
                     description="CRM, магазины, LMS, порталы"
-                    href="/category/web-apps"
+                    href="/category/veb-prilozheniya"
                   />
                   <CategoryCardPlaceholder
                     icon={Smartphone}
                     title="Мобильные приложения"
                     description="iOS и Android решения"
-                    href="/category/mobile-apps"
+                    href="/category/mobilnye-prilozheniya"
                   />
                 </>
               )}
@@ -396,8 +405,8 @@ export default async function HomePage() {
 
 // ==================== COMPONENTS ====================
 
-function HeroProductCard({ product }: { product: any }) {
-  const images = JSON.parse(product.images || "[]")
+function HeroProductCard({ product }: { product: HomeProduct }) {
+  const images = JSON.parse(product.images || "[]") as string[]
   const discountPercent = product.oldPrice
     ? Math.round((1 - product.price / product.oldPrice) * 100)
     : 0
@@ -408,13 +417,15 @@ function HeroProductCard({ product }: { product: any }) {
         {/* Image */}
         <div className="aspect-[4/3] bg-secondary/50 relative overflow-hidden">
           {images[0] ? (
-            <img
+            <Image
               src={images[0]}
               alt={product.name}
+              fill
+              sizes="(min-width: 1024px) 33vw, 100vw"
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
           ) : (
-            <ImagePlaceholder type={product.productType} size="lg" />
+            <ImagePlaceholder type={product.productType as "WEB_APP" | "MOBILE_APP"} size="lg" />
           )}
 
           {/* Discount Badge */}
@@ -493,8 +504,8 @@ function BenefitCard({
   )
 }
 
-function ProductCard({ product, index }: { product: any; index: number }) {
-  const images = JSON.parse(product.images || "[]")
+function ProductCard({ product, index }: { product: HomeProduct; index: number }) {
+  const images = JSON.parse(product.images || "[]") as string[]
   const discountPercent = product.oldPrice
     ? Math.round((1 - product.price / product.oldPrice) * 100)
     : 0
@@ -505,13 +516,15 @@ function ProductCard({ product, index }: { product: any; index: number }) {
         {/* Image */}
         <div className="aspect-[4/3] bg-secondary/50 relative overflow-hidden">
           {images[0] ? (
-            <img
+            <Image
               src={images[0]}
               alt={product.name}
+              fill
+              sizes="(min-width: 768px) 33vw, 100vw"
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
           ) : (
-            <ImagePlaceholder type={product.productType} size="md" />
+            <ImagePlaceholder type={product.productType as "WEB_APP" | "MOBILE_APP"} size="md" />
           )}
 
           {discountPercent > 0 && (
@@ -590,7 +603,7 @@ function StepCard({
   )
 }
 
-function ReviewCard({ review, index }: { review: any; index: number }) {
+function ReviewCard({ review, index }: { review: HomeReview; index: number }) {
   return (
     <div className={`glass rounded-2xl p-6 hover-lift reveal-up delay-${(index + 1) * 100}`}>
       {/* Quote Icon */}
@@ -598,7 +611,7 @@ function ReviewCard({ review, index }: { review: any; index: number }) {
 
       {/* Review Text */}
       <p className="text-foreground/90 italic mb-6 leading-relaxed">
-        &quot;{review.text}&quot;
+        &ldquo;{review.text}&rdquo;
       </p>
 
       {/* Divider */}
@@ -634,7 +647,7 @@ function ReviewCard({ review, index }: { review: any; index: number }) {
   )
 }
 
-function CategoryCard({ category, index }: { category: any; index: number }) {
+function CategoryCard({ category, index }: { category: HomeCategory; index: number }) {
   const isWeb = category.slug.includes("web") || !category.slug.includes("mobile")
   const Icon = isWeb ? Globe : Smartphone
 

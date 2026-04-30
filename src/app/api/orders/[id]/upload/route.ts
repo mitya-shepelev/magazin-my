@@ -5,6 +5,13 @@ import { writeFile, mkdir } from "fs/promises"
 import { existsSync } from "fs"
 import path from "path"
 import { randomUUID } from "crypto"
+import { messageUploadRoot } from "@/lib/storage-paths"
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitKey,
+  rateLimitResponse,
+} from "@/lib/rate-limit"
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
 const MAX_FILES = 5
@@ -33,6 +40,15 @@ export async function POST(
 
     const { id } = await params
     const isAdmin = session.user.role === "ADMIN"
+    const rateLimit = await checkRateLimit({
+      key: rateLimitKey("order-upload", session.user.id, id, getClientIp(request)),
+      limit: 10,
+      windowSeconds: 600,
+    })
+
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit, "Too many uploads")
+    }
 
     // Проверяем доступ к заказу
     const order = await db.order.findUnique({
@@ -107,7 +123,7 @@ export async function POST(
     }
 
     // Создаём директорию для файлов заказа
-    const uploadDir = path.join(process.cwd(), "uploads", "messages", id)
+    const uploadDir = path.join(messageUploadRoot(), id)
     if (!existsSync(uploadDir)) {
       await mkdir(uploadDir, { recursive: true })
     }

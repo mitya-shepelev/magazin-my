@@ -12,7 +12,6 @@ import { useSession } from "next-auth/react"
 import {
   getSocket,
   disconnectSocket,
-  isConnected,
   type TypedSocket,
 } from "@/lib/socket"
 
@@ -89,11 +88,14 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
   // Connect when user is authenticated
   useEffect(() => {
-    if (status === "authenticated" && session?.user && !connected && !connecting) {
+    if (status === "authenticated" && session?.user) {
       connect()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, session?.user]) // Remove 'connect' and volatile states from deps to prevent loops
+
+    return () => {
+      // Don't disconnect on unmount to preserve connection across navigations
+    }
+  }, [status, session?.user, connect])
 
   // Disconnect on logout
   useEffect(() => {

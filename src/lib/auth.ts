@@ -3,7 +3,7 @@ import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import { db } from "./db"
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+const nextAuth = NextAuth({
   providers: [
     Credentials({
       name: "credentials",
@@ -73,3 +73,41 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: "jwt",
   },
 })
+
+export const { handlers, signIn, signOut } = nextAuth
+
+function isSmokeAuthDisabled() {
+  return process.env.NODE_ENV !== "production" && process.env.INTERNAL_SMOKE_AUTH_DISABLED === "1"
+}
+
+function getSmokeTestSession() {
+  if (process.env.NODE_ENV === "production") {
+    return null
+  }
+
+  const userId = process.env.INTERNAL_SMOKE_AUTH_USER_ID
+  const role = process.env.INTERNAL_SMOKE_AUTH_ROLE
+
+  if (!userId || !role) {
+    return null
+  }
+
+  return {
+    user: {
+      id: userId,
+      role,
+      email: process.env.INTERNAL_SMOKE_AUTH_EMAIL || "smoke@example.com",
+      name: process.env.INTERNAL_SMOKE_AUTH_NAME || "Smoke User",
+      image: null,
+    },
+    expires: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+  }
+}
+
+export async function auth() {
+  if (isSmokeAuthDisabled()) {
+    return null
+  }
+
+  return getSmokeTestSession() ?? nextAuth.auth()
+}

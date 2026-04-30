@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import Link from "next/link"
+import Image from "next/image"
 import { Suspense } from "react"
 import { db } from "@/lib/db"
 import { cached } from "@/lib/cache"
@@ -9,6 +10,8 @@ import { Badge } from "@/components/ui/badge"
 import { ShoppingCart, Globe, Smartphone, Zap, ArrowRight } from "lucide-react"
 import { ImagePlaceholder } from "@/components/ui/image-placeholder"
 import { CatalogSort } from "@/components/shop/CatalogSort"
+
+export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
   title: "Каталог",
@@ -46,6 +49,8 @@ async function getProducts(sort: SortOption = "featured") {
     CACHE_TTL.PRODUCTS
   )
 }
+
+type CatalogProduct = Awaited<ReturnType<typeof getProducts>>[number]
 
 async function getCategories() {
   return cached(
@@ -145,8 +150,8 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
 
             {products.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {products.map((product, index) => (
-                  <ProductCard key={product.id} product={product} index={index} />
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             ) : (
@@ -163,8 +168,8 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   )
 }
 
-function ProductCard({ product, index }: { product: any; index: number }) {
-  const images = JSON.parse(product.images || "[]")
+function ProductCard({ product }: { product: CatalogProduct }) {
+  const images = JSON.parse(product.images || "[]") as string[]
   const discountPercent = product.oldPrice
     ? Math.round((1 - product.price / product.oldPrice) * 100)
     : 0
@@ -175,9 +180,11 @@ function ProductCard({ product, index }: { product: any; index: number }) {
         {/* Image */}
         <div className="aspect-[16/10] bg-secondary/50 relative overflow-hidden">
           {images[0] ? (
-            <img
+            <Image
               src={images[0]}
               alt={product.name}
+              fill
+              sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
           ) : (
