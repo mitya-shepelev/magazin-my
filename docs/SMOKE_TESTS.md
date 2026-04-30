@@ -53,6 +53,23 @@ It verifies:
 - order file upload is scoped to the order owner/admin;
 - stage confirmation and admin stage status APIs enforce permissions and order scoping.
 
+## Admin API
+
+Run locally:
+
+```bash
+npm run smoke:admin-api
+```
+
+It verifies:
+
+- customers cannot use admin product, stage template, or cache endpoints;
+- product update validates `supportDays`, returns `404` for missing products, and persists admin updates;
+- stage template list/create/update/delete endpoints validate payloads and scope templates by product;
+- stage template reorder persists the requested order and sort values;
+- cache stats are admin-only and report Redis connectivity;
+- cache clear rejects unsupported patterns and clears allowed patterns for admins.
+
 ## Auth And Checkout
 
 Run locally:

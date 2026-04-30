@@ -86,6 +86,9 @@ jobs:
       - name: Auth and checkout smoke test
         run: npm run smoke:auth-checkout
 
+      - name: Admin API smoke test
+        run: npm run smoke:admin-api
+
       - name: API security smoke test
         run: npm run smoke:api-security
 
