@@ -42,6 +42,7 @@ npm run db:migrate       # Run Prisma migrations
 npm run db:push          # Push schema changes (no migration)
 npm run db:studio        # Open Prisma Studio
 npm run db:seed          # Create admin user
+npm run admin:bootstrap  # Bootstrap admin from ADMIN_* env values
 
 # Build & Lint
 npm run build
@@ -232,6 +233,14 @@ Required for development:
 
 Production startup validates required environment variables. Do not bypass this validation with placeholder secrets; fix Dockhand/GitHub environment values instead.
 Redis is used for cache, realtime pub/sub, and API rate limiting.
+
+Optional admin bootstrap variables:
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+- `ADMIN_NAME`
+- `ADMIN_BOOTSTRAP_UPDATE_PASSWORD`
+
+The Dockhand stack runs `admin-bootstrap` after migrations. Leave `ADMIN_EMAIL` and `ADMIN_PASSWORD` blank to skip. Keep `ADMIN_BOOTSTRAP_UPDATE_PASSWORD=false` for normal deploys; set it to `true` only when intentionally rotating the bootstrap admin password.
 
 ## Local Development Setup
 

@@ -16,6 +16,7 @@
     "db:push": "env -u PGHOST npx prisma db push",
     "db:studio": "env -u PGHOST npx prisma studio",
     "db:seed": "env -u PGHOST npx tsx scripts/create-admin.ts",
+    "admin:bootstrap": "dotenv -e .env -- env -u PGHOST node scripts/bootstrap-admin.mjs",
     "db:seed:demo": "env -u PGHOST npx tsx src/scripts/seed.ts",
     "docker:local": "node scripts/docker-local.mjs",
     "docker:local:up": "node scripts/docker-local.mjs up -d",
