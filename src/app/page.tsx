@@ -25,6 +25,8 @@ import { ImagePlaceholder } from "@/components/ui/image-placeholder"
 import { Header } from "@/components/shared/Header"
 import { Footer } from "@/components/shared/Footer"
 
+export const dynamic = "force-dynamic"
+
 // ==================== DATA FETCHING (with Redis Cache) ====================
 
 async function getFeaturedProducts() {

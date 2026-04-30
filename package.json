@@ -20,7 +20,11 @@
     "docker:local": "node scripts/docker-local.mjs",
     "docker:local:up": "node scripts/docker-local.mjs up -d",
     "docker:local:down": "node scripts/docker-local.mjs down",
-    "docker:local:ps": "node scripts/docker-local.mjs ps"
+    "docker:local:ps": "node scripts/docker-local.mjs ps",
+    "docker:desktop:up": "docker compose --env-file .env.docker.example -f docker-compose.docker-desktop.yml up -d --build",
+    "docker:desktop:down": "docker compose --env-file .env.docker.example -f docker-compose.docker-desktop.yml down",
+    "docker:desktop:ps": "docker compose --env-file .env.docker.example -f docker-compose.docker-desktop.yml ps",
+    "docker:desktop:logs": "docker compose --env-file .env.docker.example -f docker-compose.docker-desktop.yml logs -f app ws"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

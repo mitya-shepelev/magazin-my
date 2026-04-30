@@ -251,11 +251,16 @@ Useful Docker commands:
 npm run docker:local:up
 npm run docker:local:ps
 npm run docker:local:down
+npm run docker:desktop:up
+npm run docker:desktop:ps
+npm run docker:desktop:down
 ```
 
 `scripts/docker-local.mjs` reads `DATABASE_URL` from `.env` and passes the parsed database name, user, password, and port into `docker-compose.local.yml`. Do not use ServBay PostgreSQL or Redis for normal project development.
 
-If Docker images are not present locally, Docker Desktop must be able to pull `postgres:16-alpine` and `redis:7-alpine`.
+Use `docker-compose.docker-desktop.yml` for a local full-stack Docker Desktop smoke before trying Dockhand. It runs app, WebSocket, PostgreSQL, Redis, and migrations with mock payments on local ports `3100` and `3101`. Do not use that compose file for remote staging or production.
+
+If Docker images are not present locally, Docker Desktop must be able to pull `postgres:16-alpine`, `redis:7-alpine`, and `public.ecr.aws/docker/library/node:20-alpine`.
 
 If a full local Docker setup is available, prefer:
 

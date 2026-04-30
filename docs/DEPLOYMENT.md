@@ -90,6 +90,7 @@ The stack includes:
 | `POSTGRES_PASSWORD` | Dockhand secret/environment |
 | `NEXTAUTH_URL` | Production app URL |
 | `NEXTAUTH_SECRET` | Dockhand secret/environment |
+| `AUTH_TRUST_HOST` | `true` when running behind Dockhand/reverse proxy or local Docker port mapping |
 | `REDIS_PASSWORD` | Dockhand secret/environment |
 | `WS_JWT_SECRET` | Dockhand secret/environment; must match the WS service JWT secret |
 | `NEXT_PUBLIC_WS_URL` | Public WebSocket URL |
@@ -199,6 +200,31 @@ npm run docker:local:down
 ```
 
 The local compose file is `docker-compose.local.yml`. It starts PostgreSQL and Redis using values parsed from `.env` by `scripts/docker-local.mjs`.
+
+### Docker Desktop Full Stack Smoke
+
+Before deploying to Dockhand, run the full stack locally in Docker Desktop:
+
+```bash
+npm run docker:desktop:up
+npm run docker:desktop:ps
+```
+
+This uses `docker-compose.docker-desktop.yml` and `.env.docker.example`. It starts PostgreSQL, Redis, the migration job, the Next.js production image, and the WebSocket image on local ports `3100` and `3101`.
+The app and WebSocket Dockerfiles use the public ECR mirror for the official Node image: `public.ecr.aws/docker/library/node:20-alpine`.
+
+Open:
+
+- app: `http://localhost:3100`
+- websocket health: `http://localhost:3101/health`
+
+Stop the stack with:
+
+```bash
+npm run docker:desktop:down
+```
+
+This Docker Desktop stack is local-only and intentionally uses `PAYMENT_PROVIDER=mock`. It sets `CI=true` for the app container so the production image can be smoke-tested locally without RollyPay credentials, and `AUTH_TRUST_HOST=true` so Auth.js accepts the Docker port-mapped host. Do not use this compose file for a remote staging or production deployment.
 
 ## Troubleshooting
 
