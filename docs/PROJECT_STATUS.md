@@ -42,6 +42,7 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 - Critical smoke script for paid order, license, activation, audit, and installation-stage flow.
 - Auth and checkout smoke script for registration, protected checkout, mock payment success, order access scoping, and admin API blocking.
 - Admin API smoke script for product updates, stage template CRUD/reorder, and cache stats/clear permissions.
+- Chat API smoke script for customer/admin messages, read receipts, cache invalidation, and Redis realtime events.
 - API security smoke script for webhook signatures, webhook idempotency, chat ownership, upload ownership, and stage permission/order scoping.
 - Customer/admin order chat with file upload support.
 - Socket.io real-time layer bridged through Redis Pub/Sub.
@@ -61,10 +62,11 @@ npm run build
 npm run smoke:critical
 npm run smoke:auth-checkout
 npm run smoke:admin-api
+npm run smoke:chat-api
 npm run smoke:api-security
 ```
 
-Result on 2026-04-30: passed locally after admin API smoke coverage was added.
+Result on 2026-04-30: passed locally after chat API smoke coverage was added.
 
 ## Key Risks
 
@@ -75,7 +77,7 @@ Result on 2026-04-30: passed locally after admin API smoke coverage was added.
 | Payments | Webhook signature and duplicate-delivery behavior have smoke coverage, but provider edge cases still need broader tests | Medium |
 | Licenses | License activation/revocation and audit events need automated tests | High |
 | Files | Persistent storage, backup, and rollback runbooks exist, but restore/rollback drills must be tested in staging | High |
-| Real-time | Redis/WS failure modes need graceful fallback and monitoring | Medium |
+| Real-time | Redis Pub/Sub message/read events have smoke coverage, but WS server failure modes need graceful fallback and monitoring | Medium |
 | Data model | Statuses and roles are mostly strings instead of Prisma enums | Medium |
 | Documentation | Docs now exist but must be maintained as decisions change | Medium |
 

@@ -27,6 +27,7 @@
 - [ ] `npm run smoke:critical` passes, or is documented as not relevant
 - [ ] `npm run smoke:auth-checkout` passes, or is documented as not relevant
 - [ ] `npm run smoke:admin-api` passes, or is documented as not relevant
+- [ ] `npm run smoke:chat-api` passes, or is documented as not relevant
 - [ ] `npm run smoke:api-security` passes, or is documented as not relevant
 - [ ] WebSocket server builds if `ws-server/` changed
 - [ ] Prisma migration is included if the schema changed
