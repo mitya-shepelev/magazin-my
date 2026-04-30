@@ -13,6 +13,7 @@
 - Clean up unused imports and variables.
 - Add a minimal smoke test script/checklist for local QA.
 - Keep `npm run smoke:critical` green for paid-order, license, audit, and installation-stage flows.
+- Keep `npm run smoke:auth-checkout` green for registration, protected checkout, mock payment success, and order access scoping.
 - Keep `npm run smoke:api-security` green for webhook signature/idempotency, chat, upload, and stage permission checks.
 - Verify the full scenario: create product, define stage templates, register customer, create payment, process webhook, generate license, bind domain/IP, chat, complete stages.
 - Update README from the default Next.js template to project-specific onboarding.
@@ -21,7 +22,7 @@
 
 **Goal:** Prepare for controlled staging/beta use.
 
-- Add automated tests for auth, cart/order creation, payment provider edge cases, license activation, and remaining admin APIs.
+- Add automated tests for checkout UI, payment provider edge cases, license activation, and remaining admin APIs.
 - Add broader automated regression tests for payment provider edge cases beyond duplicate webhook delivery.
 - Expand rate limiting coverage and tune limits from real production traffic.
 - Add stricter file upload limits and MIME validation across all upload paths.

@@ -83,6 +83,9 @@ jobs:
       - name: Critical smoke test
         run: npm run smoke:critical
 
+      - name: Auth and checkout smoke test
+        run: npm run smoke:auth-checkout
+
       - name: API security smoke test
         run: npm run smoke:api-security
 

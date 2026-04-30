@@ -8,6 +8,7 @@
     "start": "env -u PGHOST next start",
     "lint": "eslint",
     "smoke:critical": "dotenv -e .env -- env -u PGHOST npx tsx scripts/smoke-critical-flows.ts",
+    "smoke:auth-checkout": "dotenv -e .env -- env -u PGHOST npx tsx scripts/smoke-auth-checkout.ts",
     "smoke:api-security": "dotenv -e .env -- env -u PGHOST npx tsx scripts/smoke-api-security.ts",
     "db:migrate": "env -u PGHOST npx prisma migrate dev",
     "db:push": "env -u PGHOST npx prisma db push",
