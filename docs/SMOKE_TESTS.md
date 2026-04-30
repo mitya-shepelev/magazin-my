@@ -90,6 +90,27 @@ It verifies:
 - read receipts update `status`, `isRead`, and `readAt`;
 - read receipts publish `message:read` realtime events through Redis.
 
+## WebSocket Server
+
+Run locally:
+
+```bash
+cd ws-server
+npm run smoke
+```
+
+It verifies:
+
+- `/health` responds;
+- Socket.io auth rejects missing and invalid JWTs;
+- valid customer and admin JWTs connect;
+- customers can join only allowed order rooms;
+- admins can join any order room;
+- presence is tracked in Redis;
+- typing events are broadcast inside an order room;
+- Redis `message:new` and `message:read` events reach joined sockets;
+- `leave:order` clears presence and emits `user:offline`.
+
 ## Auth And Checkout
 
 Run locally:

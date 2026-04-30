@@ -30,6 +30,7 @@
 - [ ] `npm run smoke:chat-api` passes, or is documented as not relevant
 - [ ] `npm run smoke:api-security` passes, or is documented as not relevant
 - [ ] WebSocket server builds if `ws-server/` changed
+- [ ] WebSocket smoke test passes if `ws-server/` behavior changed
 - [ ] Prisma migration is included if the schema changed
 - [ ] Cache invalidation is updated if cached data changed
 - [ ] Realtime events are published after DB writes when relevant

@@ -33,6 +33,7 @@ Keep these docs in sync when architecture, product scope, deployment, or operati
 # Development
 npm run dev              # Start Next.js (port 3000)
 cd ws-server && npm run dev  # Start WebSocket server (port 3001)
+cd ws-server && npm run smoke # Run WebSocket server smoke test
 
 # Database
 npm run db:migrate       # Run Prisma migrations
@@ -98,6 +99,7 @@ Minimum expectations:
 - Build `ws-server` when WebSocket code changes.
 - Include Prisma migrations when schema changes.
 - Include manual QA notes for payment, auth, licenses, order stages, chat, or user-facing UI.
+- Build and smoke-test `ws-server` when WebSocket code changes.
 
 Known verification status as of 2026-04-30:
 - `npm run lint` passes.
@@ -106,7 +108,8 @@ Known verification status as of 2026-04-30:
 - `npm run smoke:auth-checkout` covers registration, protected checkout, mock payment success, order access scoping, and admin API blocking.
 - `npm run smoke:admin-api` covers product update, stage template CRUD/reorder, and cache admin endpoints.
 - `npm run smoke:chat-api` covers customer/admin messages, read receipts, cache invalidation, and Redis realtime events.
-- Broader automated tests are still needed for UI checkout, chat APIs, WebSocket behavior, and deeper auth edge cases.
+- `cd ws-server && npm run smoke` covers WebSocket health, auth, room access, presence, typing, and Redis event delivery.
+- Broader automated tests are still needed for UI checkout, WebSocket reconnect behavior, and deeper auth edge cases.
 
 ## Architecture
 
@@ -300,18 +303,19 @@ npm run smoke:auth-checkout
 npm run smoke:admin-api
 npm run smoke:chat-api
 npm run smoke:api-security
+cd ws-server && npm run smoke
 ```
 
 If those fail on pre-existing issues, record the exact failure category in the final handoff. Do not claim production readiness while lint/build are red.
 
 For frontend work, start the dev server and verify the changed screen in a browser when feasible.
 
-For payment, license, auth, WebSocket, or stage-flow changes, include a manual scenario checklist in the handoff if automated tests are not available. For license changes, verify customer license visibility, activation API behavior, admin license controls, and license audit events. Use `npm run smoke:critical` for payment/order/license/stage changes, `npm run smoke:auth-checkout` for registration/checkout/order-access changes, `npm run smoke:admin-api` for product/stage-template/cache admin endpoint changes, `npm run smoke:chat-api` for customer/admin message and read-receipt changes, and `npm run smoke:api-security` for webhook signature, chat, upload, and stage permission changes.
+For payment, license, auth, WebSocket, or stage-flow changes, include a manual scenario checklist in the handoff if automated tests are not available. For license changes, verify customer license visibility, activation API behavior, admin license controls, and license audit events. Use `npm run smoke:critical` for payment/order/license/stage changes, `npm run smoke:auth-checkout` for registration/checkout/order-access changes, `npm run smoke:admin-api` for product/stage-template/cache admin endpoint changes, `npm run smoke:chat-api` for customer/admin message and read-receipt changes, `cd ws-server && npm run smoke` for WebSocket server changes, and `npm run smoke:api-security` for webhook signature, chat, upload, and stage permission changes.
 
 ## Current Release Priorities
 
-1. Expand smoke coverage into focused tests for checkout UI behavior and WebSocket behavior.
-2. Keep `npm run lint`, `npm run build`, `npm run smoke:critical`, `npm run smoke:auth-checkout`, `npm run smoke:admin-api`, `npm run smoke:chat-api`, and `npm run smoke:api-security` green on `dev`.
+1. Expand smoke coverage into focused tests for checkout UI behavior and WebSocket reconnect behavior.
+2. Keep `npm run lint`, `npm run build`, `npm run smoke:critical`, `npm run smoke:auth-checkout`, `npm run smoke:admin-api`, `npm run smoke:chat-api`, `npm run smoke:api-security`, and `cd ws-server && npm run smoke` green on `dev`.
 3. Harden production security: staging-tune CSP, stricter webhook verification, and provider IP policy.
 4. Run a staging restore/rollback drill and define monitoring.
 5. Validate one complete paid-order flow in staging.
