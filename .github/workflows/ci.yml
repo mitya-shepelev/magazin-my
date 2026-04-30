@@ -14,6 +14,9 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  GHCR_IMAGE_PREFIX: ghcr.io/mitya-shepelev/magazin-my
+
 jobs:
   nextjs:
     name: Next.js app
@@ -144,3 +147,106 @@ jobs:
 
       - name: WebSocket smoke test
         run: npm run smoke
+
+  docker-images:
+    name: Build and publish Docker images
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs:
+      - nextjs
+      - websocket
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main')
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: App image metadata
+        id: meta-app
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.GHCR_IMAGE_PREFIX }}-app
+          flavor: latest=false
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,format=short,prefix=sha-
+          labels: |
+            org.opencontainers.image.title=magazin-my app
+            org.opencontainers.image.description=Next.js production app for magazin-my
+
+      - name: Build and push app image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          target: runner
+          push: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main') }}
+          tags: ${{ steps.meta-app.outputs.tags }}
+          labels: ${{ steps.meta-app.outputs.labels }}
+          cache-from: type=gha,scope=app
+          cache-to: type=gha,mode=max,scope=app
+
+      - name: Migrator image metadata
+        id: meta-migrate
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.GHCR_IMAGE_PREFIX }}-migrate
+          flavor: latest=false
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,format=short,prefix=sha-
+          labels: |
+            org.opencontainers.image.title=magazin-my migrate
+            org.opencontainers.image.description=Prisma migration runner for magazin-my
+
+      - name: Build and push migrator image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          target: migrator
+          push: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main') }}
+          tags: ${{ steps.meta-migrate.outputs.tags }}
+          labels: ${{ steps.meta-migrate.outputs.labels }}
+          cache-from: type=gha,scope=migrate
+          cache-to: type=gha,mode=max,scope=migrate
+
+      - name: WebSocket image metadata
+        id: meta-ws
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.GHCR_IMAGE_PREFIX }}-ws
+          flavor: latest=false
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,format=short,prefix=sha-
+          labels: |
+            org.opencontainers.image.title=magazin-my websocket
+            org.opencontainers.image.description=Socket.io realtime server for magazin-my
+
+      - name: Build and push WebSocket image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./ws-server
+          file: ./ws-server/Dockerfile
+          push: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main') }}
+          tags: ${{ steps.meta-ws.outputs.tags }}
+          labels: ${{ steps.meta-ws.outputs.labels }}
+          cache-from: type=gha,scope=ws
+          cache-to: type=gha,mode=max,scope=ws

@@ -13,8 +13,9 @@ GitHub is the source of truth for:
 
 Dockhand is responsible for:
 
-- pulling the GitHub repository
-- building and running the production stack
+- pulling the repository-managed Compose/stack definition
+- pulling prebuilt production Docker images from GitHub Container Registry
+- running the production stack
 - storing production environment variables/secrets
 - managing runtime services and logs
 
@@ -81,6 +82,30 @@ The stack includes:
 - persistent volumes for database, Redis, uploads, and private installation packages
 - one-off backup profiles for PostgreSQL and file storage
 
+The production Compose file does not build application images on the Dockhand host. GitHub Actions builds and publishes the project images to GitHub Container Registry (GHCR), and Dockhand pulls those immutable deployment artifacts.
+
+Default production images:
+
+| Service | Default image |
+| --- | --- |
+| `app` | `ghcr.io/mitya-shepelev/magazin-my-app:main` |
+| `migrate` | `ghcr.io/mitya-shepelev/magazin-my-migrate:main` |
+| `ws` | `ghcr.io/mitya-shepelev/magazin-my-ws:main` |
+
+GitHub Actions builds these images for pull requests and publishes them on pushes to `dev` and `main`. Published images also receive commit-addressable tags in the form `sha-<short-sha>` for rollback and auditability.
+
+If you need to deploy a specific release artifact, override these optional Dockhand environment variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `APP_IMAGE` | Next.js app image override |
+| `MIGRATE_IMAGE` | Prisma migration image override |
+| `WS_IMAGE` | WebSocket server image override |
+
+For a production release from `main`, the defaults are normally enough. For staging from `dev`, set the image overrides to `:dev` tags or to matching `sha-<short-sha>` tags.
+
+If GHCR packages are private, configure Dockhand's registry credentials for `ghcr.io` before deploy. A fine-grained token should have package read access only.
+
 ### 3. Configure Environment Variables
 
 | Variable | Source |
@@ -88,6 +113,9 @@ The stack includes:
 | `POSTGRES_DB` | Dockhand environment |
 | `POSTGRES_USER` | Dockhand environment |
 | `POSTGRES_PASSWORD` | Dockhand secret/environment |
+| `APP_IMAGE` | Optional image override; defaults to `ghcr.io/mitya-shepelev/magazin-my-app:main` |
+| `MIGRATE_IMAGE` | Optional image override; defaults to `ghcr.io/mitya-shepelev/magazin-my-migrate:main` |
+| `WS_IMAGE` | Optional image override; defaults to `ghcr.io/mitya-shepelev/magazin-my-ws:main` |
 | `NEXTAUTH_URL` | Production app URL |
 | `NEXTAUTH_SECRET` | Dockhand secret/environment |
 | `AUTH_TRUST_HOST` | `true` when running behind Dockhand/reverse proxy or local Docker port mapping |
@@ -173,6 +201,8 @@ Ensure all services can communicate:
 - **PostgreSQL**: `pg_isready` passes
 
 ## Local Development
+
+Production image builds are validated by GitHub Actions on pull requests. Image publishing is handled by GitHub Actions on pushes to `dev` and `main`. Local Docker Desktop remains the preferred way to test the full stack before deploying; it still builds local images from the working tree and does not require GHCR access.
 
 ### Start All Services
 
