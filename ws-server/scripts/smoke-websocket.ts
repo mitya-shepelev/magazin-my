@@ -145,12 +145,48 @@ async function closeHttpServer(httpServer: HttpServer) {
   await new Promise<void>((resolve, reject) => {
     httpServer.close((error) => {
       if (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ERR_SERVER_NOT_RUNNING') {
+          resolve()
+          return
+        }
+
         reject(error)
         return
       }
       resolve()
     })
   })
+}
+
+async function closeSocketServer(io: { close(callback?: () => void): void }) {
+  await new Promise<void>((resolve) => {
+    io.close(resolve)
+  })
+}
+
+async function waitForSocketDisconnect(socket: Socket) {
+  if (!socket.connected) {
+    return
+  }
+
+  await new Promise<void>((resolve) => {
+    const timeout = setTimeout(resolve, 1000)
+
+    socket.once('disconnect', () => {
+      clearTimeout(timeout)
+      resolve()
+    })
+
+    socket.disconnect()
+  })
+}
+
+async function closeRedisClient(client: { quit(): Promise<string>; disconnect(): void }) {
+  try {
+    await client.quit()
+  } catch {
+    client.disconnect()
+  }
 }
 
 async function cleanupRedis(redis: { del(...keys: string[]): Promise<number> }) {
@@ -341,12 +377,13 @@ async function main() {
     )
     logStep('leave:order clears presence and broadcasts offline event')
   } finally {
-    connectedSockets.forEach((socket) => socket.disconnect())
-    io.close()
+    await Promise.all(connectedSockets.map((socket) => waitForSocketDisconnect(socket)))
+    await closeSocketServer(io)
     await closeHttpServer(httpServer)
     await cleanupRedis(redis)
-    subscriber.disconnect()
-    redis.disconnect()
+    await subscriber.punsubscribe('order:*:events')
+    await closeRedisClient(subscriber)
+    await closeRedisClient(redis)
   }
 }
 

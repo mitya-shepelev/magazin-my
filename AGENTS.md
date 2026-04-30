@@ -24,7 +24,7 @@ Current maturity: MVP/alpha. The core product flows exist, but the project still
 - `docs/plans/` - Historical implementation plans.
 - `.github/workflows/ci.yml` - GitHub Actions CI.
 - `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md` - PR checklist.
-- `deploy/dockhand/compose.prod.yml` - Production Compose/stack definition for Dockhand.
+- `deploy/dockhand/compose.prod.yml` - Production Compose/stack definition for Dockhand using GHCR images.
 - `docs/DEPLOYMENT.md` - Production environment variable reference for Dockhand.
 
 Keep these docs in sync when architecture, product scope, deployment, or operational assumptions change.
@@ -75,6 +75,7 @@ Required GitHub Actions checks:
 
 - `Next.js app`
 - `WebSocket server`
+- `Build and publish Docker images` (builds on PRs, publishes on pushes to `dev` and `main`)
 
 Recommended flow:
 
@@ -279,6 +280,16 @@ docker compose up -d
 
 Production deploys through Dockhand from the GitHub repository. GitHub stores the source code, CI workflow, PR history, and deployment definitions; Dockhand pulls the repository and runs the Compose/stack configuration.
 
+GitHub Actions builds production Docker images on PRs and publishes them to GitHub Container Registry on pushes to `dev` and `main`. Dockhand should pull these images instead of building app images on the production host.
+
+Published project images:
+
+- `ghcr.io/mitya-shepelev/magazin-my-app:<branch-or-sha-tag>`
+- `ghcr.io/mitya-shepelev/magazin-my-migrate:<branch-or-sha-tag>`
+- `ghcr.io/mitya-shepelev/magazin-my-ws:<branch-or-sha-tag>`
+
+Use `:main` for normal production deploys, `:dev` for staging deploys, and `:sha-<short-sha>` for exact rollback or release pinning.
+
 Primary production files:
 
 - `deploy/dockhand/compose.prod.yml`
@@ -294,6 +305,7 @@ Production rules:
 - Use `dev` or a dedicated staging stack for pre-production validation.
 - Run Prisma migrations as part of the deploy flow before serving new app code.
 - Keep PostgreSQL, Redis, uploads, and private installation packages on persistent volumes or managed services with backups.
+- Configure Dockhand registry credentials for `ghcr.io` if packages are private.
 - Keep order message attachments on a persistent private volume with backups.
 - Validate release candidates in a staging Dockhand stack before promoting `dev` to `main`.
 - Follow `docs/STAGING_AND_ROLLBACK.md` for staging validation, production release, and rollback decisions.

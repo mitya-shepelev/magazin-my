@@ -1,9 +1,6 @@
 services:
   app:
-    build:
-      context: ../..
-      dockerfile: Dockerfile
-    image: magazin-nextjs:latest
+    image: ${APP_IMAGE:-ghcr.io/mitya-shepelev/magazin-my-app:main}
     restart: unless-stopped
     ports:
       - "${APP_PORT:-3000}:3000"
@@ -45,11 +42,7 @@ services:
       - magazin
 
   migrate:
-    build:
-      context: ../..
-      dockerfile: Dockerfile
-      target: migrator
-    image: magazin-migrate:latest
+    image: ${MIGRATE_IMAGE:-ghcr.io/mitya-shepelev/magazin-my-migrate:main}
     restart: "no"
     command: npx prisma migrate deploy
     environment:
@@ -61,10 +54,7 @@ services:
       - magazin
 
   ws:
-    build:
-      context: ../../ws-server
-      dockerfile: Dockerfile
-    image: magazin-ws:latest
+    image: ${WS_IMAGE:-ghcr.io/mitya-shepelev/magazin-my-ws:main}
     restart: unless-stopped
     ports:
       - "${WS_PORT:-3001}:3001"
