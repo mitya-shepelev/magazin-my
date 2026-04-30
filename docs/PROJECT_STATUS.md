@@ -1,6 +1,6 @@
 # Project Status
 
-**Updated:** 2026-04-29
+**Updated:** 2026-04-30
 
 ## Summary
 
@@ -44,8 +44,9 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 - Customer/admin order chat with file upload support.
 - Socket.io real-time layer bridged through Redis Pub/Sub.
 - Redis caching helpers and cache invalidation helpers.
-- Deployment guide for Dokploy-style deployment.
+- Deployment guide for Dockhand deployment.
 - Production persistent storage volumes and backup/restore runbook.
+- Staging validation and rollback runbook.
 - Security audit document with remaining recommendations.
 
 ## Verification Snapshot
@@ -69,7 +70,7 @@ Result on 2026-04-29: passed locally after API security smoke coverage was added
 | Security | Baseline CSP exists, but staging should validate real payment, image, and WebSocket origins; webhook IP allowlisting/replay policy should be revisited before production | High |
 | Payments | Webhook signature and duplicate-delivery behavior have smoke coverage, but provider edge cases still need broader tests | Medium |
 | Licenses | License activation/revocation and audit events need automated tests | High |
-| Files | Persistent storage and backup runbook exist, but restore must be tested in staging | High |
+| Files | Persistent storage, backup, and rollback runbooks exist, but restore/rollback drills must be tested in staging | High |
 | Real-time | Redis/WS failure modes need graceful fallback and monitoring | Medium |
 | Data model | Statuses and roles are mostly strings instead of Prisma enums | Medium |
 | Documentation | Docs now exist but must be maintained as decisions change | Medium |
@@ -81,5 +82,5 @@ Move from MVP/alpha to beta readiness:
 1. Expand automated tests beyond smoke scripts: auth, checkout UI, admin APIs, and provider edge cases.
 2. Add automated tests for license domain/IP edits, suspension, revocation, reissue, and audit events.
 3. Harden production security: tune CSP from staging reports, define webhook IP/provider policy, and document logging policy.
-4. Stabilize deployment: health checks, migrations, restore drill, monitoring, rollback procedure.
+4. Stabilize deployment: health checks, migrations, staging restore/rollback drill, and monitoring.
 5. Run an end-to-end paid order scenario in a staging environment.
