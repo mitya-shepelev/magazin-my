@@ -8,6 +8,8 @@ This runbook defines the release gate between `dev` and `main`.
 
 Use it before beta/public launch and before every production release that changes payments, licenses, installation stages, uploads, auth, WebSocket behavior, database schema, or deployment configuration.
 
+Use `docs/STAGING_CHECKLIST.md` as the working checklist/evidence artifact for each staging run.
+
 ## Environment Model
 
 - Local development runs on the developer machine with Docker Desktop.
@@ -27,8 +29,10 @@ Staging and production must not share databases, Redis data, upload volumes, pri
 - Separate storage volumes for public uploads, private installation packages, order message attachments, and backup artifacts.
 - Staging values for `NEXTAUTH_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_WS_URL`, and CSP-related origins.
 - Non-production `NEXTAUTH_SECRET`, `WS_JWT_SECRET`, `REDIS_PASSWORD`, and payment webhook secret.
-- `PAYMENT_PROVIDER=mock` for technical smoke tests, or RollyPay sandbox/test credentials if available.
+- RollyPay sandbox/test credentials if available.
 - No production payment keys in staging unless a deliberate live-payment test has been approved.
+
+Important: `deploy/dockhand/compose.prod.yml` runs the app with `NODE_ENV=production`, so `PAYMENT_PROVIDER=mock` is rejected by startup validation. Use RollyPay sandbox/test credentials for Dockhand staging, or create a dedicated non-production compose override before using mock payments in a remote staging stack.
 
 ## Pre-Deploy Checklist
 
@@ -40,13 +44,19 @@ Run before deploying a release candidate to staging:
 - Run `npm run lint`.
 - Run `npm run build`.
 - Run `npm run smoke:critical`.
+- Run `npm run smoke:auth-checkout`.
+- Run `npm run smoke:admin-api`.
+- Run `npm run smoke:chat-api`.
 - Run `npm run smoke:api-security`.
+- Run `cd ws-server && npm run build`.
+- Run `cd ws-server && npm run smoke`.
+- Run `npm audit --prefix ws-server --audit-level=high`.
 - Confirm new Prisma schema changes have migrations committed.
 - Review `docs/DEPLOYMENT.md` and Dockhand environment variables for new required values.
 - Validate compose syntax with the target environment values:
 
 ```bash
-docker compose -f deploy/dockhand/compose.prod.yml config --quiet
+docker compose --env-file .env.staging.example -f deploy/dockhand/compose.prod.yml config --quiet
 ```
 
 If staging already contains useful test data, take a backup before destructive testing:

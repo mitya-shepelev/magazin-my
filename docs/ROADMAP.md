@@ -33,6 +33,7 @@
 - Expand environment validation with provider-specific checks as deployment requirements evolve.
 - Convert roles and statuses from free-form strings to Prisma enums where practical.
 - Execute the documented staging deployment checklist and rollback drill.
+- Record staging evidence with `docs/STAGING_CHECKLIST.md` before any `dev` to `main` release PR.
 
 ## Phase 2: Production Hardening
 
@@ -90,4 +91,5 @@ The project can move from MVP/alpha to beta when:
 - A staged paid-order flow is verified end to end.
 - Critical security items are closed.
 - Deployment, backup, and rollback docs are usable.
+- Staging checklist evidence exists for one complete release candidate.
 - At least the highest-risk API routes have tests.

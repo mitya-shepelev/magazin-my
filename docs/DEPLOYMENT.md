@@ -24,6 +24,8 @@ Primary files:
 - `docs/DEPLOYMENT.md`
 - `docs/BACKUP_RESTORE.md`
 - `docs/STAGING_AND_ROLLBACK.md`
+- `docs/STAGING_CHECKLIST.md`
+- `.env.staging.example`
 
 Normal release path:
 
@@ -34,7 +36,7 @@ Normal release path:
 5. Merge release PR after checks/review.
 6. Deploy `main` in Dockhand.
 
-Staging and rollback procedures live in `docs/STAGING_AND_ROLLBACK.md`. Use that runbook before beta/public launch and before production releases that touch payments, licenses, installation stages, uploads, auth, WebSocket behavior, database schema, or deployment configuration.
+Staging and rollback procedures live in `docs/STAGING_AND_ROLLBACK.md`. Use `docs/STAGING_CHECKLIST.md` as the per-release evidence checklist and `.env.staging.example` as the Dockhand staging environment template before beta/public launch and before production releases that touch payments, licenses, installation stages, uploads, auth, WebSocket behavior, database schema, or deployment configuration.
 
 ## Architecture Overview
 
