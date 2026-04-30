@@ -41,6 +41,7 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 - Installation stage templates copied into order stages after payment.
 - Critical smoke script for paid order, license, activation, audit, and installation-stage flow.
 - Auth and checkout smoke script for registration, protected checkout, mock payment success, order access scoping, and admin API blocking.
+- Admin API smoke script for product updates, stage template CRUD/reorder, and cache stats/clear permissions.
 - API security smoke script for webhook signatures, webhook idempotency, chat ownership, upload ownership, and stage permission/order scoping.
 - Customer/admin order chat with file upload support.
 - Socket.io real-time layer bridged through Redis Pub/Sub.
@@ -59,10 +60,11 @@ npm run lint
 npm run build
 npm run smoke:critical
 npm run smoke:auth-checkout
+npm run smoke:admin-api
 npm run smoke:api-security
 ```
 
-Result on 2026-04-30: passed locally after auth and checkout smoke coverage was added.
+Result on 2026-04-30: passed locally after admin API smoke coverage was added.
 
 ## Key Risks
 
@@ -81,7 +83,7 @@ Result on 2026-04-30: passed locally after auth and checkout smoke coverage was 
 
 Move from MVP/alpha to beta readiness:
 
-1. Expand automated tests beyond smoke scripts: checkout UI, admin APIs, and provider edge cases.
+1. Expand automated tests beyond smoke scripts: checkout UI, remaining admin surfaces, and provider edge cases.
 2. Add automated tests for license domain/IP edits, suspension, revocation, reissue, and audit events.
 3. Harden production security: tune CSP from staging reports, define webhook IP/provider policy, and document logging policy.
 4. Stabilize deployment: health checks, migrations, staging restore/rollback drill, and monitoring.
