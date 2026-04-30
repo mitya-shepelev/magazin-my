@@ -52,3 +52,25 @@ It verifies:
 - order chat is scoped to the order owner/admin;
 - order file upload is scoped to the order owner/admin;
 - stage confirmation and admin stage status APIs enforce permissions and order scoping.
+
+## Auth And Checkout
+
+Run locally:
+
+```bash
+npm run smoke:auth-checkout
+```
+
+It verifies:
+
+- registration rejects weak passwords;
+- successful registration normalizes email, hashes the password, and creates a `CUSTOMER`;
+- duplicate registration is rejected;
+- checkout payment creation requires authentication;
+- checkout rejects unavailable products;
+- authenticated checkout creates a pending mock-payment order;
+- order totals and items use current product prices rather than client-submitted prices;
+- mock payment success can be completed only by the order owner;
+- mock payment success marks the order paid and creates licenses/stages;
+- customer order access is scoped to the owner/admin;
+- customers cannot access admin APIs.

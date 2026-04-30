@@ -76,6 +76,10 @@ const nextAuth = NextAuth({
 
 export const { handlers, signIn, signOut } = nextAuth
 
+function isSmokeAuthDisabled() {
+  return process.env.NODE_ENV !== "production" && process.env.INTERNAL_SMOKE_AUTH_DISABLED === "1"
+}
+
 function getSmokeTestSession() {
   if (process.env.NODE_ENV === "production") {
     return null
@@ -101,5 +105,9 @@ function getSmokeTestSession() {
 }
 
 export async function auth() {
+  if (isSmokeAuthDisabled()) {
+    return null
+  }
+
   return getSmokeTestSession() ?? nextAuth.auth()
 }
