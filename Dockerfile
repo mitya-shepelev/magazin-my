@@ -16,6 +16,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma
 COPY prisma.config.ts ./
+COPY scripts/bootstrap-admin.mjs ./scripts/bootstrap-admin.mjs
 
 # Rebuild the source code only when needed
 FROM base AS builder

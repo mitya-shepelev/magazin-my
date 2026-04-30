@@ -76,6 +76,7 @@ The stack includes:
 
 - Next.js app
 - migration job
+- optional admin bootstrap job
 - WebSocket server
 - PostgreSQL
 - Redis
@@ -129,6 +130,10 @@ If GHCR packages are private, configure Dockhand's registry credentials for `ghc
 | `ROLLYPAY_WEBHOOK_SECRET` | RollyPay webhook signing secret |
 | `NEXT_PUBLIC_APP_URL` | Production app URL |
 | `NEXT_PUBLIC_APP_NAME` | Public app name |
+| `ADMIN_EMAIL` | Optional first-admin/bootstrap email |
+| `ADMIN_PASSWORD` | Optional first-admin/bootstrap password; store as a Dockhand secret |
+| `ADMIN_NAME` | Optional first-admin/bootstrap display name |
+| `ADMIN_BOOTSTRAP_UPDATE_PASSWORD` | `false` by default; set `true` only to intentionally rotate the admin password |
 | `UPLOAD_DIR` | Public upload root; defaults to `/app/public/uploads` in production |
 | `DOWNLOAD_DIR` | Private installation package root; defaults to `/app/private/downloads` in production |
 | `MESSAGE_UPLOAD_DIR` | Private order message attachment root; defaults to `/app/uploads/messages` in production |
@@ -145,6 +150,26 @@ Minimum production secret guidance:
 - The WebSocket service must receive `WS_JWT_SECRET`, matching the Next.js app.
 
 Redis is also used for application rate limiting. If Redis is unavailable, rate limit checks fail open and log an error so checkout, license checks, and chat do not hard-fail during transient Redis issues.
+
+### Admin Bootstrap
+
+The production stack includes a one-off `admin-bootstrap` service that runs after Prisma migrations and before the app starts.
+
+If `ADMIN_EMAIL` and `ADMIN_PASSWORD` are blank, the job logs a skip message and exits successfully. If both values are set, the job creates the admin user when it does not exist. When the email already exists, the job ensures the user has the `ADMIN` role and updates the display name, but leaves the existing password unchanged by default.
+
+To intentionally rotate the bootstrap admin password, set:
+
+```bash
+ADMIN_BOOTSTRAP_UPDATE_PASSWORD=true
+```
+
+Then redeploy the stack. Set the flag back to `false` after the password has been rotated.
+
+For local use with `.env`:
+
+```bash
+npm run admin:bootstrap
+```
 
 ### Persistent Storage And Backups
 

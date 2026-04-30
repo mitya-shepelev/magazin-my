@@ -38,6 +38,8 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+      admin-bootstrap:
+        condition: service_completed_successfully
     networks:
       - magazin
 
@@ -50,6 +52,24 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - magazin
+
+  admin-bootstrap:
+    image: ${MIGRATE_IMAGE:-ghcr.io/mitya-shepelev/magazin-my-migrate:main}
+    restart: "no"
+    command: node scripts/bootstrap-admin.mjs
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_NAME: ${ADMIN_NAME:-Administrator}
+      ADMIN_BOOTSTRAP_UPDATE_PASSWORD: ${ADMIN_BOOTSTRAP_UPDATE_PASSWORD:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - magazin
 
