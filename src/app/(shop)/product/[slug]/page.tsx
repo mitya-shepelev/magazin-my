@@ -21,6 +21,8 @@ import {
 } from "lucide-react"
 import { ImagePlaceholder } from "@/components/ui/image-placeholder"
 
+export const dynamic = "force-dynamic"
+
 interface ProductPageProps {
   params: Promise<{ slug: string }>
 }

@@ -1,14 +1,17 @@
 services:
   app:
     build:
-      context: ../..
+      context: .
       dockerfile: Dockerfile
-    image: magazin-nextjs:latest
+    image: magazin-docker-app:latest
     restart: unless-stopped
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - "${APP_PORT:-3100}:3000"
     environment:
       NODE_ENV: production
+      # Local Docker Desktop smoke uses mock payments while keeping the production image.
+      # The app validation treats CI=true as non-production-strict.
+      CI: "true"
       PORT: 3000
       HOSTNAME: 0.0.0.0
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
@@ -21,19 +24,19 @@ services:
       WS_JWT_SECRET: ${WS_JWT_SECRET}
       NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
-      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-Digital Store}
-      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-rollypay}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-Digital Store Docker}
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-mock}
       PAYMENT_CURRENCY: ${PAYMENT_CURRENCY:-RUB}
       ROLLYPAY_API_URL: ${ROLLYPAY_API_URL:-https://rollypay.io}
-      ROLLYPAY_API_KEY: ${ROLLYPAY_API_KEY}
-      ROLLYPAY_WEBHOOK_SECRET: ${ROLLYPAY_WEBHOOK_SECRET}
+      ROLLYPAY_API_KEY: ${ROLLYPAY_API_KEY:-}
+      ROLLYPAY_WEBHOOK_SECRET: ${ROLLYPAY_WEBHOOK_SECRET:-}
       UPLOAD_DIR: /app/public/uploads
       DOWNLOAD_DIR: /app/private/downloads
       MESSAGE_UPLOAD_DIR: /app/uploads/messages
     volumes:
-      - uploads:/app/public/uploads
-      - downloads:/app/private/downloads
-      - message-uploads:/app/uploads/messages
+      - docker-uploads:/app/public/uploads
+      - docker-downloads:/app/private/downloads
+      - docker-message-uploads:/app/uploads/messages
     depends_on:
       postgres:
         condition: service_healthy
@@ -42,14 +45,14 @@ services:
       migrate:
         condition: service_completed_successfully
     networks:
-      - magazin
+      - magazin-docker
 
   migrate:
     build:
-      context: ../..
+      context: .
       dockerfile: Dockerfile
       target: migrator
-    image: magazin-migrate:latest
+    image: magazin-docker-migrate:latest
     restart: "no"
     command: npx prisma migrate deploy
     environment:
@@ -58,16 +61,16 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - magazin
+      - magazin-docker
 
   ws:
     build:
-      context: ../../ws-server
+      context: ./ws-server
       dockerfile: Dockerfile
-    image: magazin-ws:latest
+    image: magazin-docker-ws:latest
     restart: unless-stopped
     ports:
-      - "${WS_PORT:-3001}:3001"
+      - "${WS_PORT:-3101}:3001"
     environment:
       NODE_ENV: production
       PORT: 3001
@@ -80,85 +83,52 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - magazin
+      - magazin-docker
 
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-55432}:5432"
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - docker-postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - magazin
+      - magazin-docker
 
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    ports:
+      - "${REDIS_EXTERNAL_PORT:-56379}:6379"
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass $REDIS_PASSWORD}
     volumes:
-      - redis-data:/data
+      - docker-redis-data:/data
     healthcheck:
       test: ["CMD-SHELL", "redis-cli $${REDIS_PASSWORD:+-a $$REDIS_PASSWORD} ping | grep PONG"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - magazin
-
-  postgres-backup:
-    image: postgres:16-alpine
-    restart: "no"
-    profiles:
-      - ops
-    environment:
-      PGPASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-    command: >
-      sh -c 'mkdir -p /backups/postgres &&
-      pg_dump -h postgres -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -Fc
-      -f "/backups/postgres/$${POSTGRES_DB}_$$(date +%Y%m%d_%H%M%S).dump"'
-    volumes:
-      - backups:/backups
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - magazin
-
-  storage-backup:
-    image: alpine:3.20
-    restart: "no"
-    profiles:
-      - ops
-    command: >
-      sh -c 'mkdir -p /backups/storage &&
-      tar -czf "/backups/storage/storage_$$(date +%Y%m%d_%H%M%S).tar.gz"
-      -C /data uploads downloads message-uploads'
-    volumes:
-      - uploads:/data/uploads:ro
-      - downloads:/data/downloads:ro
-      - message-uploads:/data/message-uploads:ro
-      - backups:/backups
+      - magazin-docker
 
 networks:
-  magazin:
+  magazin-docker:
     driver: bridge
 
 volumes:
-  postgres-data:
-  redis-data:
-  uploads:
-  downloads:
-  message-uploads:
-  backups:
+  docker-postgres-data:
+  docker-redis-data:
+  docker-uploads:
+  docker-downloads:
+  docker-message-uploads:

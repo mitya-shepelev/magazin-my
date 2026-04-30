@@ -1,4 +1,6 @@
-FROM node:20-alpine AS builder
+ARG NODE_IMAGE=public.ecr.aws/docker/library/node:20-alpine
+
+FROM ${NODE_IMAGE} AS builder
 
 WORKDIR /app
 
@@ -10,10 +12,7 @@ COPY src/ ./src/
 
 RUN npm run build
 
-FROM node:20-alpine
-
-# Add wget for health checks
-RUN apk add --no-cache wget
+FROM ${NODE_IMAGE}
 
 WORKDIR /app
 
@@ -35,6 +34,6 @@ EXPOSE 3001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1
+  CMD node -e "fetch('http://localhost:3001/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
 
 CMD ["node", "dist/index.js"]

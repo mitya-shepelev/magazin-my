@@ -12,6 +12,8 @@ import { Globe, Smartphone, ShoppingCart, Zap, ArrowRight } from "lucide-react"
 import { ImagePlaceholder } from "@/components/ui/image-placeholder"
 import { CatalogSort } from "@/components/shop/CatalogSort"
 
+export const dynamic = "force-dynamic"
+
 interface CategoryPageProps {
   params: Promise<{ slug: string }>
   searchParams: Promise<{ sort?: string }>

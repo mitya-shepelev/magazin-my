@@ -11,6 +11,8 @@ import { ShoppingCart, Globe, Smartphone, Zap, ArrowRight } from "lucide-react"
 import { ImagePlaceholder } from "@/components/ui/image-placeholder"
 import { CatalogSort } from "@/components/shop/CatalogSort"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Каталог",
   description: "Каталог веб-приложений и мобильных приложений",

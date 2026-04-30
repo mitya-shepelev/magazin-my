@@ -55,6 +55,16 @@ Expected result:
 
 ## Staging Environment
 
+Before remote Dockhand staging, run the Docker Desktop full-stack smoke from `docs/DEPLOYMENT.md`:
+
+```bash
+npm run docker:desktop:up
+npm run docker:desktop:ps
+curl -f http://localhost:3100
+curl -f http://localhost:3101/health
+npm run docker:desktop:down
+```
+
 Use `.env.staging.example` as the Dockhand environment checklist.
 
 Required staging rules:
