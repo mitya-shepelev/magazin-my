@@ -25,10 +25,10 @@ export function AddToCartButton({ product, className, size = "default", showPric
   const [isInCart, setIsInCart] = useState(false)
 
   useEffect(() => {
-    // Check if product is already in cart
-    const cart = getCart()
-     
-    setIsInCart(cart.some((item) => item.id === product.id))
+    const initialSync = window.setTimeout(() => {
+      const cart = getCart()
+      setIsInCart(cart.some((item) => item.id === product.id))
+    }, 0)
 
     // Listen for cart updates
     const handleCartUpdate = (e: CustomEvent<CartItem[]>) => {
@@ -37,6 +37,7 @@ export function AddToCartButton({ product, className, size = "default", showPric
 
     window.addEventListener("cart-updated", handleCartUpdate as EventListener)
     return () => {
+      window.clearTimeout(initialSync)
       window.removeEventListener("cart-updated", handleCartUpdate as EventListener)
     }
   }, [product.id])

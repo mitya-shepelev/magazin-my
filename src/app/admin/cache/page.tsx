@@ -53,7 +53,7 @@ export default function CacheMonitorPage() {
       const res = await fetch("/api/admin/cache/stats")
       const data = await res.json()
       setStats(data)
-    } catch (error) {
+    } catch {
       setStats({ connected: false, error: "Failed to fetch stats" })
     } finally {
       setLoading(false)
@@ -82,7 +82,7 @@ export default function CacheMonitorPage() {
       } else {
         toast.error(data.error || "Ошибка очистки кеша")
       }
-    } catch (error) {
+    } catch {
       toast.error("Ошибка соединения")
     } finally {
       setClearing(null)

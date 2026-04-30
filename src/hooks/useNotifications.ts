@@ -24,8 +24,9 @@ interface UseNotificationsReturn {
   refreshUnread: () => Promise<void>
 }
 
-// Notification sound (base64 encoded short beep)
-const NOTIFICATION_SOUND_URL = "/sounds/notification.mp3"
+// Inline notification sound avoids a missing static asset in local/dev builds.
+const NOTIFICATION_SOUND_URL =
+  "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA="
 
 export function useNotifications({
   currentUserId,
@@ -48,10 +49,13 @@ export function useNotifications({
 
   // Check notification permission on mount
   useEffect(() => {
-    if (typeof window !== "undefined" && "Notification" in window) {
-       
-      setHasPermission(Notification.permission === "granted")
-    }
+    const permissionCheck = window.setTimeout(() => {
+      if ("Notification" in window) {
+        setHasPermission(Notification.permission === "granted")
+      }
+    }, 0)
+
+    return () => window.clearTimeout(permissionCheck)
   }, [])
 
   // Fetch initial unread count
@@ -69,8 +73,11 @@ export function useNotifications({
   }, [])
 
   useEffect(() => {
-     
-    refreshUnread()
+    const unreadRefresh = window.setTimeout(() => {
+      void refreshUnread()
+    }, 0)
+
+    return () => window.clearTimeout(unreadRefresh)
   }, [refreshUnread])
 
   // Play notification sound

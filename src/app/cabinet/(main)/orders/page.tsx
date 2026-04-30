@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { Download, Eye } from "lucide-react"
+import { Eye } from "lucide-react"
 
 async function getOrders(userId: string) {
   return db.order.findMany({
@@ -73,13 +73,6 @@ export default async function OrdersPage() {
                       >
                         {item.productName}
                       </Link>
-                      {order.status === "PAID" && (
-                        <Link href={`/api/download/${item.downloadKey}`}>
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0">
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                      )}
                     </div>
                   ))}
                 </div>

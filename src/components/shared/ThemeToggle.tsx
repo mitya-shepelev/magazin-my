@@ -11,8 +11,11 @@ export function ThemeToggle() {
 
   // Avoid hydration mismatch
   useEffect(() => {
-     
-    setMounted(true)
+    const mountCheck = window.setTimeout(() => {
+      setMounted(true)
+    }, 0)
+
+    return () => window.clearTimeout(mountCheck)
   }, [])
 
   if (!mounted) {

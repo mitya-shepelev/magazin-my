@@ -77,7 +77,6 @@ const STATUS_CONFIG = {
 export function ClientStagesProgress({
   orderId,
   stages,
-  currentUserId,
 }: ClientStagesProgressProps) {
   const router = useRouter()
   const [expandedStages, setExpandedStages] = useState<Set<string>>(() => {
@@ -113,7 +112,7 @@ export function ClientStagesProgress({
 
       toast.success("Этап подтверждён!")
       router.refresh()
-    } catch (error) {
+    } catch {
       toast.error("Ошибка подтверждения")
     } finally {
       setConfirmingStage(null)
@@ -138,7 +137,7 @@ export function ClientStagesProgress({
       setCommentText((prev) => ({ ...prev, [stageId]: "" }))
       toast.success("Комментарий отправлен")
       router.refresh()
-    } catch (error) {
+    } catch {
       toast.error("Ошибка отправки")
     } finally {
       setSendingComment(null)

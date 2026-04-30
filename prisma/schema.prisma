@@ -27,6 +27,7 @@ model User {
   name          String?
   role          String    @default("CUSTOMER") // ADMIN, CUSTOMER
   orders        Order[]
+  licenses      License[]
   orderMessages OrderMessage[]
   stageComments StageComment[]
   createdAt     DateTime  @default(now())
@@ -63,19 +64,20 @@ model Product {
   price         Float
   oldPrice      Float?      // Старая цена для скидок
   images        String      // JSON массив изображений
-  downloadFile  String      // Путь к файлу для скачивания
+  downloadFile  String      // Приватный пакет для установки администратором
   demoUrl       String?     // Ссылка на демо
   version       String?     // Версия продукта
   categoryId    String
   category      Category    @relation(fields: [categoryId], references: [id])
   seo           SeoMeta?
   orderItems    OrderItem[]
+  licenses      License[]
   stageTemplates StageTemplate[]
   productType   String      @default("WEB_APP") // WEB_APP, MOBILE_APP
   features      String?     // JSON массив характеристик
   isActive      Boolean     @default(true)
   isFeatured    Boolean     @default(false) // Рекомендуемый товар
-  downloads     Int         @default(0) // Счётчик скачиваний
+  downloads     Int         @default(0) // Legacy counter: purchases/installations
   supportDays   Int         @default(30) // Дней поддержки после установки
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -106,13 +108,14 @@ model Order {
   userId        String
   user          User        @relation(fields: [userId], references: [id])
   items         OrderItem[]
+  licenses      License[]
   stages        InstallationStage[]
   messages      OrderMessage[]
   total         Float
   status        String      @default("PENDING") // PENDING, PAID, CANCELLED, REFUNDED
   installationStatus String @default("NOT_STARTED") // NOT_STARTED, IN_PROGRESS, COMPLETED, SUPPORT
-  paymentId     String?     // YooKassa payment ID
-  paymentMethod String?     // Метод оплаты
+  paymentId     String?     // Payment provider ID
+  paymentMethod String?     // Payment provider/method
   customerEmail String      // Email для уведомлений
   customerName  String?
   notes         String?     // Примечания к заказу
@@ -120,6 +123,29 @@ model Order {
   supportEndsAt DateTime?   // Когда заканчивается поддержка
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+}
+
+// ==================== ПЛАТЕЖНЫЕ WEBHOOK СОБЫТИЯ ====================
+
+model PaymentWebhookEvent {
+  id               String    @id @default(cuid())
+  provider         String
+  eventKey         String    @unique
+  eventType        String?
+  status           String?
+  orderId          String?
+  paymentId        String?
+  payloadHash      String
+  processingStatus String    @default("RECEIVED") // RECEIVED, PROCESSED, IGNORED, FAILED
+  error            String?   @db.Text
+  receivedAt       DateTime  @default(now())
+  processedAt      DateTime?
+
+  @@index([provider])
+  @@index([orderId])
+  @@index([paymentId])
+  @@index([processingStatus])
+  @@index([receivedAt])
 }
 
 model OrderItem {
@@ -130,9 +156,59 @@ model OrderItem {
   product     Product   @relation(fields: [productId], references: [id])
   productName String    // Сохраняем название на момент покупки
   price       Float     // Сохраняем цену на момент покупки
-  downloadKey String    @unique @default(cuid()) // Уникальный ключ для скачивания
-  downloadCount Int     @default(0) // Количество скачиваний
+  downloadKey String    @unique @default(cuid()) // Legacy key; client downloads are disabled
+  downloadCount Int     @default(0) // Legacy download count
+  license     License?
   createdAt   DateTime  @default(now())
+}
+
+// ==================== ЛИЦЕНЗИИ ====================
+
+model License {
+  id              String    @id @default(cuid())
+  licenseKey      String    @unique
+  status          String    @default("ACTIVE") // ACTIVE, SUSPENDED, REVOKED
+  orderId         String
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItemId     String    @unique
+  orderItem       OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product   @relation(fields: [productId], references: [id])
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  domain          String?
+  serverIp        String?
+  maxActivations  Int       @default(1)
+  activationCount Int       @default(0)
+  activatedAt     DateTime?
+  lastCheckAt     DateTime?
+  events          LicenseEvent[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([orderId])
+  @@index([productId])
+  @@index([status])
+}
+
+model LicenseEvent {
+  id        String   @id @default(cuid())
+  licenseId String
+  license   License  @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  eventType String   // ACTIVATION_SUCCESS, ACTIVATION_REJECTED, BINDING_UPDATED, BINDING_RESET, STATUS_CHANGED, KEY_REISSUED
+  actorType String   @default("SYSTEM") // ADMIN, LICENSE_API, SYSTEM
+  actorId   String?
+  message   String?
+  domain    String?
+  serverIp  String?
+  metadata  String?  // JSON string with small contextual details
+  createdAt DateTime @default(now())
+
+  @@index([licenseId])
+  @@index([eventType])
+  @@index([actorType])
+  @@index([createdAt])
 }
 
 // ==================== НАСТРОЙКИ САЙТА ====================

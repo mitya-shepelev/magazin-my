@@ -31,7 +31,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/category/web-apps"
+                  href="/category/veb-prilozheniya"
                   className="text-sm text-muted-foreground hover:text-foreground"
                 >
                   Веб-приложения
@@ -39,7 +39,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/category/mobile-apps"
+                  href="/category/mobilnye-prilozheniya"
                   className="text-sm text-muted-foreground hover:text-foreground"
                 >
                   Мобильные приложения
@@ -73,7 +73,7 @@ export function Footer() {
                   href="/cabinet/downloads"
                   className="text-sm text-muted-foreground hover:text-foreground"
                 >
-                  Загрузки
+                  Лицензии
                 </Link>
               </li>
             </ul>

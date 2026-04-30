@@ -5,6 +5,12 @@ import { z } from "zod"
 import { invalidate } from "@/lib/cache"
 import { CACHE_KEYS } from "@/lib/cache-keys"
 import { realtime } from "@/lib/realtime"
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitKey,
+  rateLimitResponse,
+} from "@/lib/rate-limit"
 
 const messageSchema = z.object({
   content: z.string().min(1),
@@ -53,8 +59,22 @@ export async function POST(
     }
 
     const { id } = await params
-    const body = await request.json()
+    const rateLimit = await checkRateLimit({
+      key: rateLimitKey(
+        "admin-order-message",
+        session.user.id,
+        id,
+        getClientIp(request)
+      ),
+      limit: 60,
+      windowSeconds: 60,
+    })
 
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit, "Too many admin messages")
+    }
+
+    const body = await request.json()
     const validation = messageSchema.safeParse(body)
     if (!validation.success) {
       return NextResponse.json(

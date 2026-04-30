@@ -24,8 +24,6 @@ import {
   FileText,
   Save,
   Loader2,
-  Eye,
-  EyeOff,
 } from "lucide-react"
 
 interface SettingsFormProps {
@@ -35,7 +33,6 @@ interface SettingsFormProps {
 export function SettingsForm({ initialSettings }: SettingsFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const [showSecrets, setShowSecrets] = useState(false)
 
   async function handleSubmit(formData: FormData) {
     setIsLoading(true)
@@ -166,7 +163,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
                 Настройки оплаты
               </CardTitle>
               <CardDescription>
-                Интеграция с платёжной системой YooKassa
+                Интеграция с платёжным шлюзом RollyPay
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -176,53 +173,50 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
                     Безопасность
                   </p>
                   <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                    Секретные ключи хранятся в зашифрованном виде
+                    Production-секреты задавайте только в Dockhand environment:
+                    ROLLYPAY_API_KEY и ROLLYPAY_WEBHOOK_SECRET
                   </p>
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowSecrets(!showSecrets)}
-                >
-                  {showSecrets ? (
-                    <EyeOff className="h-4 w-4 mr-2" />
-                  ) : (
-                    <Eye className="h-4 w-4 mr-2" />
-                  )}
-                  {showSecrets ? "Скрыть" : "Показать"}
-                </Button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="yookassa_shop_id">Shop ID</Label>
+                  <Label htmlFor="payment_provider">Провайдер</Label>
                   <Input
-                    id="yookassa_shop_id"
-                    name="yookassa_shop_id"
-                    defaultValue={initialSettings.yookassa_shop_id || ""}
-                    placeholder="123456"
+                    id="payment_provider"
+                    name="payment_provider"
+                    defaultValue={initialSettings.payment_provider || "rollypay"}
+                    placeholder="rollypay"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="yookassa_secret_key">Секретный ключ</Label>
+                  <Label htmlFor="rollypay_api_url">API URL</Label>
                   <Input
-                    id="yookassa_secret_key"
-                    name="yookassa_secret_key"
-                    type={showSecrets ? "text" : "password"}
-                    defaultValue={initialSettings.yookassa_secret_key || ""}
-                    placeholder="live_xxxxx или test_xxxxx"
+                    id="rollypay_api_url"
+                    name="rollypay_api_url"
+                    defaultValue={initialSettings.rollypay_api_url || "https://rollypay.io"}
+                    placeholder="https://rollypay.io"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="yookassa_return_url">URL возврата после оплаты</Label>
+                <Label htmlFor="payment_success_url">URL успешной оплаты</Label>
                 <Input
-                  id="yookassa_return_url"
-                  name="yookassa_return_url"
-                  defaultValue={initialSettings.yookassa_return_url || ""}
-                  placeholder="https://yoursite.com/payment/success"
+                  id="payment_success_url"
+                  name="payment_success_url"
+                  defaultValue={initialSettings.payment_success_url || ""}
+                  placeholder="https://yoursite.com/cabinet/orders/{orderId}?payment=success"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="payment_fail_url">URL неуспешной оплаты</Label>
+                <Input
+                  id="payment_fail_url"
+                  name="payment_fail_url"
+                  defaultValue={initialSettings.payment_fail_url || ""}
+                  placeholder="https://yoursite.com/cart?payment=failed"
                 />
               </div>
 
@@ -288,7 +282,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
                   <Input
                     id="smtp_password"
                     name="smtp_password"
-                    type={showSecrets ? "text" : "password"}
+                    type="password"
                     defaultValue={initialSettings.smtp_password || ""}
                     placeholder="••••••••"
                   />

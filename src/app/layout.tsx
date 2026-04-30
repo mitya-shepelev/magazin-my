@@ -1,15 +1,9 @@
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "@/components/ui/sonner"
 import { SessionProvider } from "@/components/providers/SessionProvider"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
 import { db } from "@/lib/db"
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin", "cyrillic"],
-})
 
 async function getSeoSettings() {
   try {
@@ -44,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = settings.seo_title || `${storeName} - Магазин цифровых товаров`
   const description =
     settings.seo_description ||
-    "Магазин веб-приложений и мобильных приложений. Покупайте и скачивайте цифровые продукты."
+    "Магазин веб-приложений и мобильных приложений с лицензиями и установкой под ключ."
   const keywords = settings.seo_keywords
     ? settings.seo_keywords.split(",").map((k) => k.trim())
     : ["веб-приложения", "мобильные приложения", "цифровые товары", "магазин"]
@@ -83,7 +77,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
+      <body className="font-sans antialiased" suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

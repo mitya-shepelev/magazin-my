@@ -1,6 +1,7 @@
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { db } from "@/lib/db"
 import { cached } from "@/lib/cache"
 import { CACHE_KEYS, CACHE_TTL } from "@/lib/cache-keys"
@@ -10,7 +11,6 @@ import { AddToCartButton } from "@/components/shop/AddToCartButton"
 import {
   ExternalLink,
   Download,
-  Star,
   Check,
   Shield,
   RefreshCw,
@@ -20,6 +20,8 @@ import {
   Zap,
 } from "lucide-react"
 import { ImagePlaceholder } from "@/components/ui/image-placeholder"
+
+export const dynamic = "force-dynamic"
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>
@@ -141,9 +143,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
               {/* Main Image */}
               <div className="image-frame aspect-[4/3] bg-secondary/30 relative group">
                 {images[0] ? (
-                  <img
+                  <Image
                     src={images[0]}
                     alt={product.name}
+                    fill
+                    sizes="(min-width: 1024px) 58vw, 100vw"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 ) : (
@@ -176,9 +180,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
                       key={index}
                       className="image-frame aspect-video bg-secondary/30 cursor-pointer hover-lift group"
                     >
-                      <img
+                      <Image
                         src={image}
                         alt={`${product.name} - ${index + 1}`}
+                        fill
+                        sizes="(min-width: 1024px) 15vw, 25vw"
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                     </div>
@@ -335,11 +341,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
                       className={`reveal-up delay-${(index + 1) * 100}`}
                     >
                       <div className="glass rounded-2xl overflow-hidden hover-lift glow-border group">
-                        <div className="aspect-video bg-secondary/30 overflow-hidden">
+                        <div className="aspect-video bg-secondary/30 overflow-hidden relative">
                           {relatedImages[0] ? (
-                            <img
+                            <Image
                               src={relatedImages[0]}
                               alt={related.name}
+                              fill
+                              sizes="(min-width: 768px) 33vw, 100vw"
                               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                             />
                           ) : (

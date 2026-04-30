@@ -11,6 +11,7 @@ import {
   Users,
   Settings,
   Search,
+  KeyRound,
   ArrowLeft,
   Store,
   ChevronRight,
@@ -45,6 +46,12 @@ const menuItems = [
     icon: ShoppingCart,
     description: "Обработка заказов",
     showBadge: true,
+  },
+  {
+    title: "Лицензии",
+    href: "/admin/licenses",
+    icon: KeyRound,
+    description: "Ключи и привязки",
   },
   {
     title: "Пользователи",

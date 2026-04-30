@@ -30,7 +30,7 @@ export async function GET() {
 
     const stats = parseInfo(info)
     const memory = parseInfo(memoryInfo)
-    const db = parseInfo(keyspace)
+    parseInfo(keyspace)
 
     // Получаем все ключи кеша нашего приложения
     const allKeys = await redis.keys("*")

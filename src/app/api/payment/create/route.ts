@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { createPayment } from "@/lib/yookassa"
+import { createCheckoutPayment } from "@/lib/payments"
+import { env } from "@/lib/env"
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitKey,
+  rateLimitResponse,
+} from "@/lib/rate-limit"
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,6 +19,16 @@ export async function POST(request: NextRequest) {
         { error: "Для оформления заказа необходимо войти в аккаунт" },
         { status: 401 }
       )
+    }
+
+    const rateLimit = await checkRateLimit({
+      key: rateLimitKey("payment-create", session.user.id, getClientIp(request)),
+      limit: 10,
+      windowSeconds: 600,
+    })
+
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit, "Too many payment attempts")
     }
 
     const { items } = await request.json()
@@ -63,29 +80,32 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Create payment
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-    const returnUrl = `${appUrl}/cabinet/orders/${order.id}?payment=success`
+    const appUrl = env.NEXT_PUBLIC_APP_URL
+    const successUrl = `${appUrl}/cabinet/orders/${order.id}?payment=success`
+    const failUrl = `${appUrl}/cart?payment=failed`
 
-    const payment = await createPayment({
+    const payment = await createCheckoutPayment({
       amount: total,
       description: `Заказ ${orderNumber}`,
       orderId: order.id,
-      returnUrl,
+      orderNumber,
+      successUrl,
+      failUrl,
       customerEmail: session.user.email!,
+      customerId: session.user.id,
     })
 
-    // Update order with payment ID
     await db.order.update({
       where: { id: order.id },
       data: {
         paymentId: payment.id,
+        paymentMethod: payment.provider,
       },
     })
 
     return NextResponse.json({
       orderId: order.id,
-      confirmationUrl: payment.confirmation?.confirmation_url,
+      confirmationUrl: payment.paymentUrl,
     })
   } catch (error) {
     console.error("Payment creation error:", error)

@@ -60,7 +60,7 @@ export async function createCategory(formData: FormData) {
     await invalidatePattern(`${CACHE_KEYS.PRODUCTS_LIST}:*`)
 
     return { success: true, category }
-  } catch (error) {
+  } catch {
     return { error: "Ошибка при создании категории" }
   }
 }
@@ -127,7 +127,7 @@ export async function updateCategory(id: string, formData: FormData) {
     await invalidatePattern('category:*:products:*')
 
     return { success: true }
-  } catch (error) {
+  } catch {
     return { error: "Ошибка при обновлении категории" }
   }
 }
@@ -156,7 +156,7 @@ export async function deleteCategory(id: string) {
     await invalidate('products:count')
 
     return { success: true }
-  } catch (error) {
+  } catch {
     return { error: "Ошибка при удалении категории" }
   }
 }
