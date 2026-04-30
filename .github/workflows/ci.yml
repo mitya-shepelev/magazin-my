@@ -89,6 +89,9 @@ jobs:
       - name: Admin API smoke test
         run: npm run smoke:admin-api
 
+      - name: Chat API smoke test
+        run: npm run smoke:chat-api
+
       - name: API security smoke test
         run: npm run smoke:api-security
 

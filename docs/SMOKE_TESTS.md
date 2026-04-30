@@ -70,6 +70,26 @@ It verifies:
 - cache stats are admin-only and report Redis connectivity;
 - cache clear rejects unsupported patterns and clears allowed patterns for admins.
 
+## Chat API
+
+Run locally:
+
+```bash
+npm run smoke:chat-api
+```
+
+It verifies:
+
+- order message list requires auth and is scoped to the owner/admin;
+- customers can send messages only for paid orders they own;
+- customer and admin message endpoints validate content;
+- admin message endpoints are admin-only;
+- message creation invalidates cached message data;
+- message creation publishes `message:new` realtime events through Redis;
+- read receipts update only messages from other users;
+- read receipts update `status`, `isRead`, and `readAt`;
+- read receipts publish `message:read` realtime events through Redis.
+
 ## Auth And Checkout
 
 Run locally:

@@ -46,6 +46,7 @@ npm run lint
 npm run smoke:critical
 npm run smoke:auth-checkout
 npm run smoke:admin-api
+npm run smoke:chat-api
 npm run smoke:api-security
 ```
 
@@ -104,6 +105,7 @@ Known verification status as of 2026-04-30:
 - `npm run smoke:critical` covers the paid order, license, activation, audit, and installation-stage flow.
 - `npm run smoke:auth-checkout` covers registration, protected checkout, mock payment success, order access scoping, and admin API blocking.
 - `npm run smoke:admin-api` covers product update, stage template CRUD/reorder, and cache admin endpoints.
+- `npm run smoke:chat-api` covers customer/admin messages, read receipts, cache invalidation, and Redis realtime events.
 - Broader automated tests are still needed for UI checkout, chat APIs, WebSocket behavior, and deeper auth edge cases.
 
 ## Architecture
@@ -296,6 +298,7 @@ npm run build
 npm run smoke:critical
 npm run smoke:auth-checkout
 npm run smoke:admin-api
+npm run smoke:chat-api
 npm run smoke:api-security
 ```
 
@@ -303,12 +306,12 @@ If those fail on pre-existing issues, record the exact failure category in the f
 
 For frontend work, start the dev server and verify the changed screen in a browser when feasible.
 
-For payment, license, auth, WebSocket, or stage-flow changes, include a manual scenario checklist in the handoff if automated tests are not available. For license changes, verify customer license visibility, activation API behavior, admin license controls, and license audit events. Use `npm run smoke:critical` for payment/order/license/stage changes, `npm run smoke:auth-checkout` for registration/checkout/order-access changes, `npm run smoke:admin-api` for product/stage-template/cache admin endpoint changes, and `npm run smoke:api-security` for webhook signature, chat, upload, and stage permission changes.
+For payment, license, auth, WebSocket, or stage-flow changes, include a manual scenario checklist in the handoff if automated tests are not available. For license changes, verify customer license visibility, activation API behavior, admin license controls, and license audit events. Use `npm run smoke:critical` for payment/order/license/stage changes, `npm run smoke:auth-checkout` for registration/checkout/order-access changes, `npm run smoke:admin-api` for product/stage-template/cache admin endpoint changes, `npm run smoke:chat-api` for customer/admin message and read-receipt changes, and `npm run smoke:api-security` for webhook signature, chat, upload, and stage permission changes.
 
 ## Current Release Priorities
 
-1. Expand smoke coverage into focused tests for checkout UI behavior, chat APIs, and WebSocket behavior.
-2. Keep `npm run lint`, `npm run build`, `npm run smoke:critical`, `npm run smoke:auth-checkout`, `npm run smoke:admin-api`, and `npm run smoke:api-security` green on `dev`.
+1. Expand smoke coverage into focused tests for checkout UI behavior and WebSocket behavior.
+2. Keep `npm run lint`, `npm run build`, `npm run smoke:critical`, `npm run smoke:auth-checkout`, `npm run smoke:admin-api`, `npm run smoke:chat-api`, and `npm run smoke:api-security` green on `dev`.
 3. Harden production security: staging-tune CSP, stricter webhook verification, and provider IP policy.
 4. Run a staging restore/rollback drill and define monitoring.
 5. Validate one complete paid-order flow in staging.
