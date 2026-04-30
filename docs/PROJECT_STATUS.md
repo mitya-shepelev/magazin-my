@@ -51,6 +51,7 @@ The project is not production-ready yet. It needs stabilization, release hardeni
 - Deployment guide for Dockhand deployment.
 - Production persistent storage volumes and backup/restore runbook.
 - Staging validation and rollback runbook.
+- Staging validation checklist and Dockhand staging environment template.
 - Security audit document with remaining recommendations.
 
 ## Verification Snapshot
@@ -75,10 +76,10 @@ Result on 2026-04-30: passed locally after WebSocket server smoke coverage was a
 | Area | Risk | Priority |
 | --- | --- | --- |
 | Release quality | Build/lint pass, but automated coverage is still focused on smoke-level critical paths | High |
-| Security | Baseline CSP exists, but staging should validate real payment, image, and WebSocket origins; webhook IP allowlisting/replay policy should be revisited before production | High |
+| Security | Baseline CSP exists and staging checklist covers browser-origin validation, but real staging results are still needed; webhook IP allowlisting/replay policy should be revisited before production | High |
 | Payments | Webhook signature and duplicate-delivery behavior have smoke coverage, but provider edge cases still need broader tests | Medium |
 | Licenses | License activation/revocation and audit events need automated tests | High |
-| Files | Persistent storage, backup, and rollback runbooks exist, but restore/rollback drills must be tested in staging | High |
+| Files | Persistent storage, backup, rollback, and staging checklist docs exist, but restore/rollback drills must be executed in staging | High |
 | Real-time | Redis Pub/Sub and WebSocket delivery have smoke coverage, but production failure modes need graceful fallback and monitoring | Medium |
 | Data model | Statuses and roles are mostly strings instead of Prisma enums | Medium |
 | Documentation | Docs now exist but must be maintained as decisions change | Medium |
@@ -90,5 +91,5 @@ Move from MVP/alpha to beta readiness:
 1. Expand automated tests beyond smoke scripts: checkout UI, remaining admin surfaces, and provider edge cases.
 2. Add automated tests for license domain/IP edits, suspension, revocation, reissue, and audit events.
 3. Harden production security: tune CSP from staging reports, define webhook IP/provider policy, and document logging policy.
-4. Stabilize deployment: health checks, migrations, staging restore/rollback drill, and monitoring.
-5. Run an end-to-end paid order scenario in a staging environment.
+4. Execute the staging validation checklist, including restore/rollback drill evidence.
+5. Define production monitoring and alerting after the first staging run.

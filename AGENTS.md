@@ -18,6 +18,8 @@ Current maturity: MVP/alpha. The core product flows exist, but the project still
 - `docs/DEPLOYMENT.md` - Deployment guide.
 - `docs/BACKUP_RESTORE.md` - Production backup and restore runbook.
 - `docs/STAGING_AND_ROLLBACK.md` - Staging validation and rollback runbook.
+- `docs/STAGING_CHECKLIST.md` - Per-release staging validation checklist and release evidence template.
+- `.env.staging.example` - Staging Dockhand environment template without real secrets.
 - `docs/audits/` - Security and technical audits.
 - `docs/plans/` - Historical implementation plans.
 - `.github/workflows/ci.yml` - GitHub Actions CI.
