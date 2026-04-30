@@ -49,75 +49,101 @@ export function setupConnectionHandlers(
   }
 
   // Handle joining order room
-  socket.on('join:order', async ({ orderId }) => {
+  socket.on('join:order', ({ orderId }) => {
+    void handleJoinOrder(orderId)
+  })
+
+  async function handleJoinOrder(orderId: string) {
     if (!canAccessOrder(socket, orderId)) {
       socket.emit('error', { message: 'Access denied to this order' })
       return
     }
 
-    const roomName = `order:${orderId}`
+    try {
+      const roomName = `order:${orderId}`
 
-    // Get currently online users BEFORE joining
-    const onlineUsers = await redis.smembers(`online:order:${orderId}`)
+      // Get currently online users BEFORE joining
+      const onlineUsers = await redis.smembers(`online:order:${orderId}`)
 
-    socket.join(roomName)
+      socket.join(roomName)
 
-    // Track user in order room
-    await redis.sadd(`online:order:${orderId}`, userId)
-    await redis.hset(`presence:${userId}`, 'currentOrder', orderId)
+      // Track user in order room
+      await redis.sadd(`online:order:${orderId}`, userId)
+      await redis.hset(`presence:${userId}`, 'currentOrder', orderId)
 
-    // Send the joining user a list of who's already online
-    for (const onlineUserId of onlineUsers) {
-      if (onlineUserId !== userId) {
-        socket.emit('user:online', { userId: onlineUserId, orderId })
+      // Send the joining user a list of who's already online
+      for (const onlineUserId of onlineUsers) {
+        if (onlineUserId !== userId) {
+          socket.emit('user:online', { userId: onlineUserId, orderId })
+        }
       }
+
+      // Notify others in room (including the joining user so they see themselves as online)
+      io.to(roomName).emit('user:online', { userId, orderId })
+
+      // Notify admins
+      io.to('admin:orders').emit('user:online', { userId, orderId })
+
+      console.log(`[Socket] User ${userId} joined order:${orderId}`)
+    } catch (error) {
+      console.error('[Socket] Error joining order room:', error)
+      socket.emit('error', { message: 'Failed to join order room' })
     }
-
-    // Notify others in room (including the joining user so they see themselves as online)
-    io.to(roomName).emit('user:online', { userId, orderId })
-
-    // Notify admins
-    io.to('admin:orders').emit('user:online', { userId, orderId })
-
-    console.log(`[Socket] User ${userId} joined order:${orderId}`)
-  })
+  }
 
   // Handle leaving order room
-  socket.on('leave:order', async ({ orderId }) => {
-    const roomName = `order:${orderId}`
-    socket.leave(roomName)
-
-    // Remove from order tracking
-    await redis.srem(`online:order:${orderId}`, userId)
-    await redis.hdel(`presence:${userId}`, 'currentOrder')
-
-    // Notify others in room
-    socket.to(roomName).emit('user:offline', { userId, orderId })
-
-    // Notify admins
-    io.to('admin:orders').emit('user:offline', { userId, orderId })
-
-    console.log(`[Socket] User ${userId} left order:${orderId}`)
+  socket.on('leave:order', ({ orderId }) => {
+    void handleLeaveOrder(orderId)
   })
+
+  async function handleLeaveOrder(orderId: string) {
+    try {
+      const roomName = `order:${orderId}`
+      socket.leave(roomName)
+
+      // Remove from order tracking
+      await redis.srem(`online:order:${orderId}`, userId)
+      await redis.hdel(`presence:${userId}`, 'currentOrder')
+
+      // Notify others in room
+      socket.to(roomName).emit('user:offline', { userId, orderId })
+
+      // Notify admins
+      io.to('admin:orders').emit('user:offline', { userId, orderId })
+
+      console.log(`[Socket] User ${userId} left order:${orderId}`)
+    } catch (error) {
+      console.error('[Socket] Error leaving order room:', error)
+      socket.emit('error', { message: 'Failed to leave order room' })
+    }
+  }
 
   // Handle disconnect
-  socket.on('disconnect', async () => {
+  socket.on('disconnect', () => {
+    void handleDisconnect()
+  })
+
+  async function handleDisconnect() {
     console.log(`[Socket] User disconnected: ${userId}`)
 
-    // Get current order before cleanup
-    const currentOrder = await redis.hget(`presence:${userId}`, 'currentOrder')
+    try {
+      // Get current order before cleanup
+      const currentOrder = await redis.hget(`presence:${userId}`, 'currentOrder')
 
-    // Clean up presence data
-    await redis.srem('online:users', userId)
-    await redis.del(`presence:${userId}`)
+      // Clean up presence data
+      await redis.srem('online:users', userId)
+      await redis.del(`presence:${userId}`)
 
-    if (currentOrder) {
-      await redis.srem(`online:order:${currentOrder}`, userId)
+      if (currentOrder) {
+        await redis.srem(`online:order:${currentOrder}`, userId)
 
-      // Notify others
-      const roomName = `order:${currentOrder}`
-      socket.to(roomName).emit('user:offline', { userId, orderId: currentOrder })
-      io.to('admin:orders').emit('user:offline', { userId, orderId: currentOrder })
+        // Notify others
+        const roomName = `order:${currentOrder}`
+        socket.to(roomName).emit('user:offline', { userId, orderId: currentOrder })
+        io.to('admin:orders').emit('user:offline', { userId, orderId: currentOrder })
+      }
+    } catch (error) {
+      console.error('[Socket] Error cleaning up disconnected socket:', error)
     }
-  })
+  }
 }
